@@ -31,7 +31,7 @@
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-
+int Thread::MaxCount=0;
 Thread::Thread(char* threadName)
 {
     
@@ -39,9 +39,14 @@ Thread::Thread(char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-    pid++;
+    MaxCount++;
+    pid = MaxCount;
 //    ppid = getPid();
-//    ppid = currentThread->getPid();
+    if (currentThread != NULL){
+      ppid = currentThread->getPid();
+    }else{
+      ppid = -1;
+    }
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -336,10 +341,4 @@ int
 Thread::getPpid()
 {
     return this->ppid;
-}
-
-void 
-Thread::setPpid(int ppid)
-{
-    this->ppid = ppid;
 }

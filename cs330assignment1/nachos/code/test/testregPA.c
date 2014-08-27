@@ -24,7 +24,7 @@ main()
     sys_PrintChar('\n');
     sys_PrintIntHex(sys_GetReg(34));
     sys_PrintChar('\n');
-    sys_PrintInt(sys_GetPID());
+    sys_PrintInt(sys_GetTime());
     sys_PrintChar('\n');
     sys_PrintInt(sys_GetPPID());
     sys_PrintChar('\n');

@@ -189,7 +189,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
-    // syscall_GetPA (syscall 3)
+    // syscall_GetPID (syscall 3)
     else if ((which == SyscallException) && (type == syscall_GetPID)) {
        machine->WriteRegister(2,currentThread->getPid());
        // Advance program counters.
@@ -197,15 +197,30 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
-    //correct it   syscall_GetPA (syscall 2)
-     else if ((which == SyscallException) && (type == syscall_GetPPID)) {
+    // syscall_GetPPID (syscall 4)
+    else if ((which == SyscallException) && (type == syscall_GetPPID)) {
        machine->WriteRegister(2,currentThread->getPpid());
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    // syscall_Time (syscall 5)
+    else if ((which == SyscallException) && (type == syscall_Time)) {
+       machine->WriteRegister(2,stats->totalTicks);
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    //syscall_NumInstr (syscall 6)
+    else if ((which == SyscallException) && (type == syscall_NumInstr)) {
 
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
