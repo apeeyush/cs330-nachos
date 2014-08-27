@@ -26,7 +26,7 @@
 #include "syscall.h"
 #include "console.h"
 #include "synch.h"
-
+#include "thread.h"
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -75,6 +75,7 @@ ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
     int memval, vaddr, printval, tempval, exp;
+    int regtype;
     unsigned printvalus;        // Used for printing in hex
     if (!initializedConsoleSemaphores) {
        readAvail = new Semaphore("read avail", 0);
@@ -157,7 +158,47 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    } else {
+    } 
+    //Assignment Starts from here
+    else if ((which == SyscallException) && (type == syscall_GetReg)) {
+    
+       regtype = machine->ReadRegister(4);
+       machine->WriteRegister(2,machine->ReadRegister(regtype));
+      // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+
+    else if ((which == SyscallException) && (type == syscall_GetPID)) {
+       
+     //  console->PutChar(Thread->pid);
+       machine->WriteRegister(2,currentThread->getPid());
+
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    //correct it
+     else if ((which == SyscallException) && (type == syscall_GetPPID)) {
+       
+     //  console->PutChar(Thread->pid);
+       machine->WriteRegister(2,currentThread->getPpid());
+
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == syscall_GetPA)) {
+       
+     //  console->PutChar(Thread->pid);
+       machine->WriteRegister(2,currentThread->getPpid());
+
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
     }

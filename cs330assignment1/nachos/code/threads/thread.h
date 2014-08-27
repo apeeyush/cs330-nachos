@@ -101,7 +101,9 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-
+    int getPid();
+    int getPpid();
+    void setPpid(int ppid);
   private:
     // some of the private data for this class is listed above
     
@@ -116,7 +118,7 @@ class Thread {
 					// Used internally by Fork()
 
     int pid, ppid;			// My pid and my parent's pid
-
+ //   static int cnt=0;
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
 // one for its state while executing user code, one for its state 

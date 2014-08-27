@@ -34,10 +34,14 @@
 
 Thread::Thread(char* threadName)
 {
+    
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    pid++;
+//    ppid = getPid();
+//    ppid = currentThread->getPid();
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -318,3 +322,24 @@ Thread::RestoreUserState()
 	machine->WriteRegister(i, userRegisters[i]);
 }
 #endif
+
+
+//////////////////////////////////////////////////////////////////////
+
+int
+Thread::getPid()
+{
+    return this->pid;
+}
+
+int
+Thread::getPpid()
+{
+    return this->ppid;
+}
+
+void 
+Thread::setPpid(int ppid)
+{
+    this->ppid = ppid;
+}
