@@ -159,45 +159,53 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     } 
-    //Assignment Starts from here
+    // syscall_GetReg (syscall 1)
     else if ((which == SyscallException) && (type == syscall_GetReg)) {
-    
        regtype = machine->ReadRegister(4);
        machine->WriteRegister(2,machine->ReadRegister(regtype));
-      // Advance program counters.
+       // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
-
-    else if ((which == SyscallException) && (type == syscall_GetPID)) {
-       
-     //  console->PutChar(Thread->pid);
-       machine->WriteRegister(2,currentThread->getPid());
-
-       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    }
-    //correct it
-     else if ((which == SyscallException) && (type == syscall_GetPPID)) {
-       
-     //  console->PutChar(Thread->pid);
-       machine->WriteRegister(2,currentThread->getPpid());
-
-       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    }
+    // syscall_GetPA (syscall 2)
     else if ((which == SyscallException) && (type == syscall_GetPA)) {
-       
-     //  console->PutChar(Thread->pid);
-       machine->WriteRegister(2,currentThread->getPpid());
-
+       if ( machine->ReadRegister(4)/PageSize > machine->pageTableSize ){
+          machine->WriteRegister(2,-1);
+       }
+       else if ( machine->pageTable[machine->ReadRegister(4)/PageSize].valid == FALSE ){
+          machine->WriteRegister(2,-1);
+       }
+       else if ( machine->pageTable[machine->ReadRegister(4)/PageSize].physicalPage > NumPhysPages ){
+          machine->WriteRegister(2,-1);
+       }
+       else{
+          int physAddr;
+          machine->Translate(machine->ReadRegister(4), &physAddr, PageSize, FALSE);
+          machine->WriteRegister(2,physAddr);
+       }
+       // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    // syscall_GetPA (syscall 3)
+    else if ((which == SyscallException) && (type == syscall_GetPID)) {
+       machine->WriteRegister(2,currentThread->getPid());
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    //correct it   syscall_GetPA (syscall 2)
+     else if ((which == SyscallException) && (type == syscall_GetPPID)) {
+       machine->WriteRegister(2,currentThread->getPpid());
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
