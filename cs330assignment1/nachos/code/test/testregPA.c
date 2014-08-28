@@ -4,7 +4,6 @@ int
 main()
 {
     int array[SIZE], i, sum=0;
-
     sys_PrintString("Starting physical address of array: ");
     sys_PrintInt(sys_GetPA((unsigned)array));
     sys_PrintChar('\n');
@@ -19,10 +18,6 @@ main()
     sys_PrintIntHex(sys_GetReg(34));
     sys_PrintChar('\n');
     sys_PrintInt(sys_GetPID());
-    sys_PrintChar('\n');
-    sys_PrintInt(sys_GetPID());
-    sys_PrintChar('\n');
-    sys_PrintIntHex(sys_GetReg(34));
     sys_PrintChar('\n');
     sys_PrintInt(sys_GetTime());
     sys_PrintChar('\n');
