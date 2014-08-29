@@ -145,3 +145,29 @@ Scheduler::Print()
     printf("Ready list contents:\n");
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
+
+//----------------------------------------------------------------------
+// Scheduler::Tail
+//      This is the portion of Scheduler::Run after _SWITCH(). This needs
+//      to be executed in the startup function used in fork().
+//----------------------------------------------------------------------
+
+void
+Scheduler::Tail ()
+{
+    // If the old thread gave up the processor because it was finishing,
+    // we need to delete its carcass.  Note we cannot delete the thread
+    // before now (for example, in Thread::Finish()), because up to this
+    // point, we were still running on the old thread's stack!
+    if (threadToBeDestroyed != NULL) {
+        delete threadToBeDestroyed;
+        threadToBeDestroyed = NULL;
+    }
+
+#ifdef USER_PROGRAM
+    if (currentThread->space != NULL) {         // if there is an address space
+        currentThread->RestoreUserState();     // to restore, do it.
+        currentThread->space->RestoreState();
+    }
+#endif
+}

@@ -24,7 +24,7 @@ class AddrSpace {
 					// initializing it with the program
 					// stored in the file "executable"
 
-    AddrSpace(int, int);  // Create an address space and copy from memory
+    AddrSpace(unsigned int,unsigned int);  // Create an address space and copy from memory
 
     ~AddrSpace();			// De-allocate an address space
 

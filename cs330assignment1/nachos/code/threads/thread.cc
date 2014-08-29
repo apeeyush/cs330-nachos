@@ -328,6 +328,16 @@ Thread::RestoreUserState()
 }
 #endif
 
+//----------------------------------------------------------------------
+// Thread::Startup
+//      Part of the scheduling code needed to cleanly start a forked child.
+//----------------------------------------------------------------------
+
+void
+Thread::Startup()
+{
+   scheduler->Tail();
+}
 
 //////////////////////////////////////////////////////////////////////
 

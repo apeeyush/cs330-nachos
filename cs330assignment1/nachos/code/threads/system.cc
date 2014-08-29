@@ -18,6 +18,8 @@ Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 					// for invoking context switches
+unsigned numPagesAllocated;              // number of physical frames allocated
+
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -83,6 +85,7 @@ Initialize(int argc, char **argv)
     bool randomYield = FALSE;
 
     initializedConsoleSemaphores = false;
+    numPagesAllocated = 0;
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
@@ -197,4 +200,3 @@ Cleanup()
     
     Exit(0);
 }
-

@@ -117,14 +117,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 // S This can be done by multiplying the first physical page number of process A by the PageSize
 // R This is essentially the number of pages of process A multiplied by the PageSize
-AddrSpace::AddrSpace(int S, int R)
+AddrSpace::AddrSpace(unsigned int S, unsigned int size)
 {
-    unsigned int i, size;
-    unsigned int size = R;
-
-    numPages = PnumPages;
-    size = numPages * PageSize;
-
+    unsigned int i;
+    unsigned int startAddrParent = S;
+    unsigned int startAddrChild = numPagesAllocated*PageSize;
     ASSERT(numPages <= NumPhysPages);       // check we're not trying
                         // to run anything too big --
                         // at least until we have
@@ -132,11 +129,11 @@ AddrSpace::AddrSpace(int S, int R)
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
                     numPages, size);
-// first, set up the translation 
+    // first, set up the translation 
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
     pageTable[i].virtualPage = i;   // for now, virtual page # = phys page #
-    pageTable[i].physicalPage = i;
+    pageTable[i].physicalPage = i + numPagesAllocated;
     pageTable[i].valid = TRUE;
     pageTable[i].use = FALSE;
     pageTable[i].dirty = FALSE;
@@ -144,9 +141,7 @@ AddrSpace::AddrSpace(int S, int R)
                     // a separate page, we could set its 
                     // pages to be read-only
     }
-    // Copy the contents
-    unsigned startAddrParent = S;
-    unsigned startAddrChild = numPagesAllocated*PageSize;
+
     for (i=0; i<size; i++) {
        machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
     }

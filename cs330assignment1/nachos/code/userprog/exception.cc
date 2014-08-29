@@ -29,9 +29,10 @@
 #include "thread.h"
 
 extern void StartProcess(char *file);
+
 void foo(int arg)
 {
-  Scheduler* newScheduler;
+  currentThread->Startup();
   machine->Run();
 }
 
@@ -257,39 +258,46 @@ ExceptionHandler(ExceptionType which)
     }
     // syscall_Sleep (syscall 9)
     else if ((which == SyscallException) && (type == syscall_Sleep)) {
-       int arg = machine->ReadRegister(4);
-       if (arg == 0){
-          currentThread->Yield();
-       }else{
-          timer = new Timer(TimerInterruptHandler, 0, randomYield);
+       // int arg = machine->ReadRegister(4);
+       // if (arg == 0){
+       //    currentThread->Yield();
+       // }else{
+       //    timer = new Timer(TimerInterruptHandler, 0, randomYield);
 
-          IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
-          currentThread->Sleep();
-          (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
+       //    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+       //    currentThread->Sleep();
+       //    (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
 
-       }
+       // }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == syscall_Fork)) {
-       Thread* forkedThread = new Thread("fork");
-       // S = This can be done by multiplying the first physical page number of process A by the PageSize
-       // R = This is essentially the number of pages of process A multiplied by the PageSize
-       int S =  machine->pageTable[0].physicalPage*PageSize;
-       int R = numPages*PageSize;
-       AddrSpace* forkspace = new AddrSpace(S, R);
-       machine->WriteRegister(2,0);        // Set return value for child process before copy of registers
-       forkedThread->SaveUserState();      // Copy parent registers to child registers
-       // StackAllocate(func, arg);
-
-       // Return Value for parent process
-       machine->WriteRegister(2,forkedThread->getPid());
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+
+       Thread* forkedThread = new Thread("fork");
+       // S = This can be done by multiplying the first physical page number of process A by the PageSize
+       // R = This is essentially the number of pages of process A multiplied by the PageSize
+       unsigned int S =  machine->pageTable[0].physicalPage*PageSize;
+       unsigned int numPages = machine->pageTableSize;
+       unsigned int R = numPages*PageSize;
+       AddrSpace* forkspace = new AddrSpace(S, R);
+       forkedThread->space = forkspace;
+       machine->WriteRegister(2,0);        // Set return value for child process before copy of registers
+       forkedThread->SaveUserState();      // Copy parent registers to child registers
+       forkedThread->StackAllocate(foo,0);
+
+       IntStatus oldLevel = interrupt->SetLevel(IntOff);
+       scheduler->ReadyToRun(forkedThread);        // ReadyToRun assumes that interrupts are disabled!
+       (void) interrupt->SetLevel(oldLevel);
+
+       // Return Value for parent process
+       machine->WriteRegister(2,forkedThread->getPid());
     }
 
     else {
