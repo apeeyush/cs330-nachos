@@ -17,7 +17,7 @@ Scheduler *scheduler;			// the ready list
 Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
-					// for invoking context switches
+List *sleepQ= new List();					// for invoking context switches
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -39,7 +39,7 @@ bool initializedConsoleSemaphores;
 
 // External definition, to allow us to take a pointer to this function
 extern void Cleanup();
-
+ 
 
 //----------------------------------------------------------------------
 // TimerInterruptHandler
@@ -62,7 +62,33 @@ static void
 TimerInterruptHandler(int dummy)
 {
     if (interrupt->getStatus() != IdleMode)
-	interrupt->YieldOnReturn();
+    {
+	//interrupt->YieldOnReturn();
+        List *ptr;
+        ptr=sleepQ;
+        while(!sleepQ->IsEmpty())
+        {
+            // if(sleepQ->GetKey()<=stats->totalTicks) 
+            // {
+            //     scheduler->ReadyToRun((Thread *)ptr->item);
+            //     sleepQ->Remove();
+            // }
+            // else break;
+            int key;
+            Thread * t;
+            t=(Thread *)sleepQ->SortedRemove(&key);
+            if(key<=stats->totalTicks) 
+            {
+                scheduler->ReadyToRun(t);
+            }
+            else
+            {
+                sleepQ->SortedInsert(t,key);
+                break;
+            }
+        }
+        interrupt->YieldOnReturn();
+    }
 }
 
 //----------------------------------------------------------------------

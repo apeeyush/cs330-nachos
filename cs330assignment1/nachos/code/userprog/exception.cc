@@ -58,6 +58,8 @@ static Semaphore *writeDone;
 static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
+
+
 static void ConvertIntToHex (unsigned v, Console *console)
 {
    unsigned x;
@@ -248,7 +250,8 @@ ExceptionHandler(ExceptionType which)
         physicalAddress++;
        }
        filename[i] = '\0';
-       machine->pageTable = NULL;
+       AddrSpace* addrspace = currentThread->space;
+       addrspace->~AddrSpace();
        StartProcess(filename);
     }
     // syscall_Sleep (syscall 9)
@@ -257,12 +260,28 @@ ExceptionHandler(ExceptionType which)
        if (arg == 0){
           currentThread->Yield();
        }else{
-          timer = new Timer(TimerInterruptHandler, 0, randomYield);
-
-          IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+      //    timer = new Timer(TimerInterruptHandler, 0, randomYield);
+          int nticks =  arg + stats->totalTicks;
+          IntStatus oldLevel = interrupt->SetLevel(IntOff);
+          sleepQ->SortedInsert(currentThread,nticks);   // disable interrupts
           currentThread->Sleep();
           (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
 
+          // oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+          // // ListElement *ptr;
+
+          // // for (ptr = sleepQ->First(); ptr->next != NULL; ptr = ptr->next)
+          // // {
+          // //   if(ptr->key<=stats->totalTicks) 
+          // //   {
+
+          // //     scheduler->ReadyToRun((Thread *)ptr->item);
+          // //     sleepQ->Remove();
+          // //   }
+          // //   else break;
+          // // }
+          
+          // (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
        }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
