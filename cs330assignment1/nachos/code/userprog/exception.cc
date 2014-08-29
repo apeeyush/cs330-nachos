@@ -234,19 +234,36 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     // syscall_Exec (syscall 8)
-    //syscall_Exec: This is same as the execv() call we have discussed in the class. In
-    //the context of NachOS, you need to mimic what the StartProcess() function
-    //does. Do not try to reuse or overwrite the existing address space.
-    //Remember to set up the page table for the new address space properly.
+    // syscall_Exec: This is same as the execv() call we have discussed in the class. In
+    // the context of NachOS, you need to mimic what the StartProcess() function
+    // does. Do not try to reuse or overwrite the existing address space.
+    // Remember to set up the page table for the new address space properly.
     else if ((which == SyscallException) && (type == syscall_Exec)) {
-       machine->WriteRegister(2,machine->ReadRegister(4));
-//       sys_PrintInt(machine->ReadRegister(4));
-//       char* filename = (char*)machine->ReadRegister(4);
-         // StartProcess(filename);
+       int physicalAddress = machine->ReadRegister(4);
+       char filename[1000];
+       int i=0;
+       while(machine->mainMemory[physicalAddress] != NULL){
+        filename[i] = machine->mainMemory[physicalAddress];
+        i++;
+        physicalAddress++;
+       }
+       filename[i] = '\0';
+       machine->pageTable = NULL;
+       StartProcess(filename);
     }
     // syscall_Sleep (syscall 9)
     else if ((which == SyscallException) && (type == syscall_Sleep)) {
-       
+       int arg = machine->ReadRegister(4);
+       if (arg == 0){
+          currentThread->Yield();
+       }else{
+          timer = new Timer(TimerInterruptHandler, 0, randomYield);
+
+          IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+          currentThread->Sleep();
+          (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
+
+       }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
