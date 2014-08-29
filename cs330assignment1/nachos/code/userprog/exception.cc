@@ -30,7 +30,7 @@
 
 extern void StartProcess(char *file);
 
-void foo(int arg)
+void ForkStartFunction(int arg)
 {
   currentThread->Startup();
   machine->Run();
@@ -92,6 +92,8 @@ ExceptionHandler(ExceptionType which)
        initializedConsoleSemaphores = true;
     }
     Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
+
+    Thread *child;    // Used by SC_Fork
 
     if ((which == SyscallException) && (type == syscall_Halt)) {
   DEBUG('a', "Shutdown, initiated by user program.\n");
@@ -280,24 +282,13 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
 
-       Thread* forkedThread = new Thread("fork");
-       // S = This can be done by multiplying the first physical page number of process A by the PageSize
-       // R = This is essentially the number of pages of process A multiplied by the PageSize
-       unsigned int S =  machine->pageTable[0].physicalPage*PageSize;
-       unsigned int numPages = machine->pageTableSize;
-       unsigned int R = numPages*PageSize;
-       AddrSpace* forkspace = new AddrSpace(S, R);
-       forkedThread->space = forkspace;
-       machine->WriteRegister(2,0);        // Set return value for child process before copy of registers
-       forkedThread->SaveUserState();      // Copy parent registers to child registers
-       forkedThread->StackAllocate(foo,0);
-
-       IntStatus oldLevel = interrupt->SetLevel(IntOff);
-       scheduler->ReadyToRun(forkedThread);        // ReadyToRun assumes that interrupts are disabled!
-       (void) interrupt->SetLevel(oldLevel);
-
-       // Return Value for parent process
-       machine->WriteRegister(2,forkedThread->getPid());
+       child = new Thread("Forked thread");
+       child->space = new AddrSpace (currentThread->space);  // Duplicates the address space
+       child->SaveUserState ();                 // Duplicate the register set
+       child->ResetReturnValue ();           // Sets the return register to zero
+       child->StackAllocate (ForkStartFunction, 0); // Make it ready for a later context switch
+       child->Schedule ();
+       machine->WriteRegister(2, child->getPid());    // Return value for parent
     }
 
     else {

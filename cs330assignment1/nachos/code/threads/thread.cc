@@ -326,6 +326,19 @@ Thread::RestoreUserState()
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
 }
+
+//----------------------------------------------------------------------
+// Thread::ResetReturnValue
+//      Sets the syscall return value to zero. Used to set the return
+//      value of SC_Fork in the created child.
+//----------------------------------------------------------------------
+
+void
+Thread::ResetReturnValue ()
+{
+   userRegisters[2] = 0;
+}
+
 #endif
 
 //----------------------------------------------------------------------
@@ -337,6 +350,21 @@ void
 Thread::Startup()
 {
    scheduler->Tail();
+}
+
+
+//----------------------------------------------------------------------
+// Thread::Schedule
+//      Enqueues the thread in the ready queue.
+//----------------------------------------------------------------------
+
+void
+Thread::Schedule()
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    scheduler->ReadyToRun(this);        // ReadyToRun assumes that interrupts
+                                        // are disabled!
+    (void) interrupt->SetLevel(oldLevel);
 }
 
 //////////////////////////////////////////////////////////////////////

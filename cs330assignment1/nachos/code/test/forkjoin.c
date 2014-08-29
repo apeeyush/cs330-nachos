@@ -9,6 +9,7 @@ main()
     sys_PrintInt(sys_GetPID());
     sys_PrintChar('\n');
     x = sys_Fork();
+    sys_PrintString("hello");
     if (x == 0) {
        // sys_PrintString("Child PID: ");
        // sys_PrintInt(sys_GetPID());

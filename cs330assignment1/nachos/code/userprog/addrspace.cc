@@ -86,7 +86,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i;
+	pageTable[i].physicalPage = i + numPagesAllocated;
 	pageTable[i].valid = TRUE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
@@ -117,34 +117,39 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 // S This can be done by multiplying the first physical page number of process A by the PageSize
 // R This is essentially the number of pages of process A multiplied by the PageSize
-AddrSpace::AddrSpace(unsigned int S, unsigned int size)
+AddrSpace::AddrSpace(AddrSpace *parentSpace)
 {
-    unsigned int i;
-    unsigned int startAddrParent = S;
-    unsigned int startAddrChild = numPagesAllocated*PageSize;
-    ASSERT(numPages <= NumPhysPages);       // check we're not trying
-                        // to run anything too big --
-                        // at least until we have
-                        // virtual memory
+    numPages = parentSpace->GetNumPages();
+    unsigned i, size = numPages * PageSize;
 
-    DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
-                    numPages, size);
-    // first, set up the translation 
+    ASSERT(numPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
+                                                                                // to run anything too big --
+                                                                                // at least until we have
+                                                                                // virtual memory
+
+    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+                                        numPages, size);
+    // first, set up the translation
+    TranslationEntry* parentPageTable = parentSpace->GetPageTable();
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
-    pageTable[i].virtualPage = i;   // for now, virtual page # = phys page #
-    pageTable[i].physicalPage = i + numPagesAllocated;
-    pageTable[i].valid = TRUE;
-    pageTable[i].use = FALSE;
-    pageTable[i].dirty = FALSE;
-    pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-                    // a separate page, we could set its 
-                    // pages to be read-only
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = i+numPagesAllocated;
+        pageTable[i].valid = parentPageTable[i].valid;
+        pageTable[i].use = parentPageTable[i].use;
+        pageTable[i].dirty = parentPageTable[i].dirty;
+        pageTable[i].readOnly = parentPageTable[i].readOnly;    // if the code segment was entirely on
+                                                    // a separate page, we could set its
+                                                    // pages to be read-only
     }
 
+    // Copy the contents
+    unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
+    unsigned startAddrChild = numPagesAllocated*PageSize;
     for (i=0; i<size; i++) {
        machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
     }
+
     numPagesAllocated += numPages;
 }
 
@@ -213,4 +218,16 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+}
+
+unsigned
+AddrSpace::GetNumPages()
+{
+   return numPages;
+}
+
+TranslationEntry*
+AddrSpace::GetPageTable()
+{
+   return pageTable;
 }
