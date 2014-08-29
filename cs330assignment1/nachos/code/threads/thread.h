@@ -105,6 +105,12 @@ class Thread {
     static int MaxCount;
     int getPid();
     int getPpid();
+    void StackAllocate(VoidFunctionPtr func, int arg);
+                        // Allocate a stack for thread.
+                    // Used internally by Fork()
+    void Startup();                 // Called by the startup function of SC_Fork to cleanly start a forked child after it is scheduled
+    void ResetReturnValue ();               // Used by SC_Fork to set the return value of child to zero
+    void Schedule ();                   // Called by SC_Fork to enqueue the newly created child thread in the ready queue
 
   private:
     // some of the private data for this class is listed above
@@ -115,9 +121,7 @@ class Thread {
     ThreadStatus status;		// ready, running or blocked
     char* name;
 
-    void StackAllocate(VoidFunctionPtr func, int arg);
-    					// Allocate a stack for thread.
-					// Used internally by Fork()
+
 
     int pid, ppid;			// My pid and my parent's pid
 

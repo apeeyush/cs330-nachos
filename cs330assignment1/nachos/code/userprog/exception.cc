@@ -1,18 +1,18 @@
 // exception.cc 
-//	Entry point into the Nachos kernel from user programs.
-//	There are two kinds of things that can cause control to
-//	transfer back to here from user code:
+//  Entry point into the Nachos kernel from user programs.
+//  There are two kinds of things that can cause control to
+//  transfer back to here from user code:
 //
-//	syscall -- The user code explicitly requests to call a procedure
-//	in the Nachos kernel.  Right now, the only function we support is
-//	"Halt".
+//  syscall -- The user code explicitly requests to call a procedure
+//  in the Nachos kernel.  Right now, the only function we support is
+//  "Halt".
 //
-//	exceptions -- The user code does something that the CPU can't handle.
-//	For instance, accessing memory that doesn't exist, arithmetic errors,
-//	etc.  
+//  exceptions -- The user code does something that the CPU can't handle.
+//  For instance, accessing memory that doesn't exist, arithmetic errors,
+//  etc.  
 //
-//	Interrupts (which can also cause control to transfer from user
-//	code into the Nachos kernel) are handled elsewhere.
+//  Interrupts (which can also cause control to transfer from user
+//  code into the Nachos kernel) are handled elsewhere.
 //
 // For now, this only handles the Halt() system call.
 // Everything else core dumps.
@@ -30,28 +30,33 @@
 
 extern void StartProcess(char *file);
 
+void ForkStartFunction(int arg)
+{
+  currentThread->Startup();
+  machine->Run();
+}
 
 //----------------------------------------------------------------------
 // ExceptionHandler
-// 	Entry point into the Nachos kernel.  Called when a user program
-//	is executing, and either does a syscall, or generates an addressing
-//	or arithmetic exception.
+//  Entry point into the Nachos kernel.  Called when a user program
+//  is executing, and either does a syscall, or generates an addressing
+//  or arithmetic exception.
 //
-// 	For system calls, the following is the calling convention:
+//  For system calls, the following is the calling convention:
 //
-// 	system call code -- r2
-//		arg1 -- r4
-//		arg2 -- r5
-//		arg3 -- r6
-//		arg4 -- r7
+//  system call code -- r2
+//    arg1 -- r4
+//    arg2 -- r5
+//    arg3 -- r6
+//    arg4 -- r7
 //
-//	The result of the system call, if any, must be put back into r2. 
+//  The result of the system call, if any, must be put back into r2. 
 //
 // And don't forget to increment the pc before returning. (Or else you'll
 // loop making the same system call forever!
 //
-//	"which" is the kind of exception.  The list of possible exceptions 
-//	are in machine.h.
+//  "which" is the kind of exception.  The list of possible exceptions 
+//  are in machine.h.
 //----------------------------------------------------------------------
 static Semaphore *readAvail;
 static Semaphore *writeDone;
@@ -90,19 +95,21 @@ ExceptionHandler(ExceptionType which)
     }
     Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
 
+    Thread *child;    // Used by SC_Fork
+
     if ((which == SyscallException) && (type == syscall_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
+  DEBUG('a', "Shutdown, initiated by user program.\n");
+    interrupt->Halt();
     }
     else if ((which == SyscallException) && (type == syscall_PrintInt)) {
        printval = machine->ReadRegister(4);
        if (printval == 0) {
-	  writeDone->P() ;
+    writeDone->P() ;
           console->PutChar('0');
        }
        else {
           if (printval < 0) {
-	     writeDone->P() ;
+       writeDone->P() ;
              console->PutChar('-');
              printval = -printval;
           }
@@ -114,7 +121,7 @@ ExceptionHandler(ExceptionType which)
           }
           exp = exp/10;
           while (exp > 0) {
-	     writeDone->P() ;
+       writeDone->P() ;
              console->PutChar('0'+(printval/exp));
              printval = printval % exp;
              exp = exp/10;
@@ -126,7 +133,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == syscall_PrintChar)) {
-	writeDone->P() ;
+  writeDone->P() ;
         console->PutChar(machine->ReadRegister(4));   // echo it!
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -137,7 +144,7 @@ ExceptionHandler(ExceptionType which)
        vaddr = machine->ReadRegister(4);
        machine->ReadMem(vaddr, 1, &memval);
        while ((*(char*)&memval) != '\0') {
-	  writeDone->P() ;
+    writeDone->P() ;
           console->PutChar(*(char*)&memval);
           vaddr++;
           machine->ReadMem(vaddr, 1, &memval);
@@ -266,30 +273,31 @@ ExceptionHandler(ExceptionType which)
           sleepQ->SortedInsert(currentThread,nticks);   // disable interrupts
           currentThread->Sleep();
           (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
-
-          // oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
-          // // ListElement *ptr;
-
-          // // for (ptr = sleepQ->First(); ptr->next != NULL; ptr = ptr->next)
-          // // {
-          // //   if(ptr->key<=stats->totalTicks) 
-          // //   {
-
-          // //     scheduler->ReadyToRun((Thread *)ptr->item);
-          // //     sleepQ->Remove();
-          // //   }
-          // //   else break;
-          // // }
-          
-          // (void) interrupt->SetLevel(oldLevel);               // re-enable interrupts
        }
-       // Advance program counters.
+
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
-    else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+    else if ((which == SyscallException) && (type == syscall_Fork)) {
+
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+
+       child = new Thread("Forked thread");
+       child->space = new AddrSpace (currentThread->space);  // Duplicates the address space
+       child->SaveUserState ();                 // Duplicate the register set
+       child->ResetReturnValue ();           // Sets the return register to zero
+       child->StackAllocate (ForkStartFunction, 0); // Make it ready for a later context switch
+       child->Schedule ();
+       machine->WriteRegister(2, child->getPid());    // Return value for parent
     }
+
+    else {
+  printf("Unexpected user mode exception %d %d\n", which, type);
+  ASSERT(FALSE);
+    }
+
 }

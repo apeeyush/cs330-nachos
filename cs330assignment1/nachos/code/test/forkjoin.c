@@ -5,11 +5,18 @@ main()
 {
     int x;
 
+<<<<<<< HEAD
     // sys_PrintString("Parent PID: ");
     // sys_PrintInt(sys_GetPID());
     // sys_PrintChar('\n');
     //x = sys_Fork();
     x=0;
+=======
+    sys_PrintString("Parent PID: ");
+    sys_PrintInt(sys_GetPID());
+    sys_PrintChar('\n');
+    x = sys_Fork();
+    sys_PrintString("hello");
     if (x == 0) {
        // sys_PrintString("Child PID: ");
        // sys_PrintInt(sys_GetPID());
@@ -28,14 +35,15 @@ main()
     //    sys_PrintInt(sys_GetNumInstr());
     //    sys_PrintString(" instructions.\n");
      }
+
     else {
        sys_PrintString("Parent after fork waiting for child: ");
-       sys_PrintInt(x);
-       sys_PrintChar('\n');
-       sys_Join(x);
-       sys_PrintString("Parent executed ");
-       sys_PrintInt(sys_GetNumInstr());
-       sys_PrintString(" instructions.\n");
+       // sys_PrintInt(x);
+       // sys_PrintChar('\n');
+       // sys_Join(x);
+       // sys_PrintString("Parent executed ");
+       // sys_PrintInt(sys_GetNumInstr());
+       // sys_PrintString(" instructions.\n");
     }
     return 0;
 }
