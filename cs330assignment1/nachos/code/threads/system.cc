@@ -7,7 +7,7 @@
 
 #include "copyright.h"
 #include "system.h"
-
+#define MAX_THREAD_COUNT 2000
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
 
@@ -18,9 +18,10 @@ Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 List *sleepQ= new List();					// for invoking context switches
-					// for invoking context switches
+List *joinsleepq = new List();
 unsigned numPagesAllocated;              // number of physical frames allocated
-
+int threadExitArr[MAX_THREAD_COUNT];
+int threadExitCode[MAX_THREAD_COUNT];
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;

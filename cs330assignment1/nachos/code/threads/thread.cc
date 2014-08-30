@@ -41,9 +41,12 @@ Thread::Thread(char* threadName)
     status = JUST_CREATED;
     MaxCount++;
     pid = MaxCount;
+//    childpidArray[MAX_CHILD_NUMBER];
+    top=0;
 //    ppid = getPid();
     if (currentThread != NULL){
-      ppid = currentThread->getPid();
+        ppid = currentThread->getPid();
+        currentThread->CreateNewChild(pid);
     }else{
       ppid = -1;
     }

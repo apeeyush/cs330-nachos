@@ -294,8 +294,62 @@ ExceptionHandler(ExceptionType which)
        child->Schedule ();
        machine->WriteRegister(2, child->getPid());    // Return value for parent
     }
+     // syscall_Join  (syscall 9)
+    else if ((which == SyscallException) && (type == syscall_Join)) {
+      int childPid=machine->ReadRegister(4);
+      int flag=0;
+      int parentPid=currentThread->getPid();
+      for(int i=0;i<currentThread->top;i++)
+      {
+        if(currentThread->childpidArray[i]==childPid){
+          flag=1;
+          if(threadExitArr[childPid] == 1)    //condition of exit
+          {
+            //return exit code for child 
+            machine->WriteRegister(2, threadExitCode[childPid]);
+          }
+          else
+          {
+            IntStatus oldLevel = interrupt->SetLevel(IntOff);
+            currentThread->Sleep();
+            //place current thread in a list so that we can check if that thread is on sleep
+            joinsleepq->Append((void*) currentThread);
+            (void) interrupt->SetLevel(oldLevel); 
+          }
+        }
+      }
+      if(flag==0){
+        machine->WriteRegister(2,-1);
+      }
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+     // syscall_Exit  (syscall )
+   else if ((which == SyscallException) && (type == syscall_Exit)) {
+      int exitcode =  machine->ReadRegister(4);
+      int pid = currentThread->getPid();
+      threadExitArr[pid] = 1;
+      threadExitCode[pid] = exitcode;
+      if(scheduler->FindNextToRun()==NULL){
+        interrupt->Halt();
+      }
+      else{
+       Thread *wakeThread = (Thread *)joinsleepq->FindInList((void*)currentThread);
+       currentThread->Finish();
 
-    else {
+      // threadToBeDestroyed =  currentThread;
+      // IntStatus oldLevel = interrupt->SetLevel(IntOff);
+      // currentThread->Sleep();
+  //    (void) interrupt->SetLevel(IntOn); 
+  //    Thread* nextthread = scheduler->FindNextToRun();
+        if(wakeThread!=NULL){
+          scheduler->Run(wakeThread);    
+        }
+      }
+    }
+   else {
   printf("Unexpected user mode exception %d %d\n", which, type);
   ASSERT(FALSE);
     }

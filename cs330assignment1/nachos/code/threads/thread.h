@@ -49,7 +49,7 @@
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
 // For simplicity, this is just the max over all architectures.
 #define MachineStateSize 18 
-
+#define MAX_CHILD_NUMBER 100
 
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
@@ -79,7 +79,7 @@ class Thread {
     // THEY MUST be in this position for SWITCH to work.
     int* stackTop;			 // the current stack pointer
     int machineState[MachineStateSize];  // all registers except for stackTop
-
+    
   public:
     Thread(char* debugName);		// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
@@ -111,7 +111,16 @@ class Thread {
     void Startup();                 // Called by the startup function of SC_Fork to cleanly start a forked child after it is scheduled
     void ResetReturnValue ();               // Used by SC_Fork to set the return value of child to zero
     void Schedule ();                   // Called by SC_Fork to enqueue the newly created child thread in the ready queue
-
+    void CreateNewChild(int pid)
+    {
+        if(top<MAX_CHILD_NUMBER)
+        {
+            childpidArray[top]=pid;
+            top++;
+        }
+    };
+    int childpidArray[MAX_CHILD_NUMBER];
+    int top;
   private:
     // some of the private data for this class is listed above
     

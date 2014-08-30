@@ -56,7 +56,13 @@ list.o: ../threads/list.cc ../threads/copyright.h ../threads/list.h \
   /usr/include/gconv.h \
   /usr/lib/gcc/x86_64-redhat-linux/3.4.6/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
-  /usr/include/string.h /usr/include/xlocale.h
+  /usr/include/string.h /usr/include/xlocale.h ../threads/system.h \
+  ../threads/thread.h ../machine/machine.h ../threads/utility.h \
+  ../machine/translate.h ../machine/disk.h ../userprog/addrspace.h \
+  ../threads/copyright.h ../filesys/filesys.h ../threads/copyright.h \
+  ../filesys/openfile.h ../threads/utility.h ../threads/scheduler.h \
+  ../machine/interrupt.h ../threads/list.h ../machine/stats.h \
+  ../machine/timer.h ../filesys/filesys.h
 scheduler.o: ../threads/scheduler.cc ../threads/copyright.h \
   ../threads/scheduler.h ../threads/list.h ../threads/utility.h \
   ../machine/sysdep.h ../threads/copyright.h /usr/include/stdio.h \
