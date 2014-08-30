@@ -337,7 +337,7 @@ Thread::RestoreUserState()
 //----------------------------------------------------------------------
 
 void
-Thread::ResetReturnValue ()
+Thread::SetForkReturnValue ()
 {
    userRegisters[2] = 0;
 }
@@ -345,38 +345,20 @@ Thread::ResetReturnValue ()
 #endif
 
 //----------------------------------------------------------------------
-// Thread::Startup
-//      Part of the scheduling code needed to cleanly start a forked child.
+// Thread::getPid
+//      Returns the PID for current process
 //----------------------------------------------------------------------
-
-void
-Thread::Startup()
-{
-   scheduler->Tail();
-}
-
-
-//----------------------------------------------------------------------
-// Thread::Schedule
-//      Enqueues the thread in the ready queue.
-//----------------------------------------------------------------------
-
-void
-Thread::Schedule()
-{
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    scheduler->ReadyToRun(this);        // ReadyToRun assumes that interrupts
-                                        // are disabled!
-    (void) interrupt->SetLevel(oldLevel);
-}
-
-//////////////////////////////////////////////////////////////////////
 
 int
 Thread::getPid()
 {
     return this->pid;
 }
+
+//----------------------------------------------------------------------
+// Thread::getPpid
+//      Returns the PPID for current process
+//----------------------------------------------------------------------
 
 int
 Thread::getPpid()

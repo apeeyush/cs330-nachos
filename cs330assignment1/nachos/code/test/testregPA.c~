@@ -34,6 +34,12 @@ main()
     // sys_PrintInt(sum);
     // sys_PrintChar('\n');
     // sys_Exit(0);
-
+=======
+    for (i=0; i<SIZE; i++) sum += array[i];
+    sys_PrintString("Total sum: ");
+    sys_PrintInt(sum);
+    sys_PrintChar('\n');
+    sys_Exit(0);
+>>>>>>> da2ddd3cdc2a38d9785d36768e06c6532ecd7e52
     return 0;
 }

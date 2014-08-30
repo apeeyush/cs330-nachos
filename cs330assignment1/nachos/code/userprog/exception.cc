@@ -30,9 +30,16 @@
 
 extern void StartProcess(char *file);
 
-void ForkStartFunction(int arg)
+void StartFun(int arg)
 {
-  currentThread->Startup();
+  // Restore State
+  #ifdef USER_PROGRAM
+      if (currentThread->space != NULL) {
+          currentThread->RestoreUserState();
+          currentThread->space->RestoreState();
+      }
+  #endif
+  // Run
   machine->Run();
 }
 
@@ -286,13 +293,20 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
 
-       child = new Thread("Forked thread");
+       child = new Thread("forked");
        child->space = new AddrSpace (currentThread->space);  // Duplicates the address space
-       child->SaveUserState ();                 // Duplicate the register set
-       child->ResetReturnValue ();           // Sets the return register to zero
-       child->StackAllocate (ForkStartFunction, 0); // Make it ready for a later context switch
-       child->Schedule ();
-       machine->WriteRegister(2, child->getPid());    // Return value for parent
+       // Duplicate the register state to child process
+       child->SaveUserState ();
+       // Reset return value (Set return value to 0)
+       child->SetForkReturnValue ();
+       child->StackAllocate (StartFun, 0); // Make it ready for a later context switch
+
+       IntStatus oldLevel = interrupt->SetLevel(IntOff);
+       scheduler->ReadyToRun(child);        // ReadyToRun assumes that interrupts are disabled!
+       (void) interrupt->SetLevel(oldLevel);
+
+       // Return child's PID for Parent Process
+       machine->WriteRegister(2, child->getPid());
     }
      // syscall_Join  (syscall 9)
     else if ((which == SyscallException) && (type == syscall_Join)) {

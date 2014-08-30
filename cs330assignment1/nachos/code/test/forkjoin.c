@@ -8,8 +8,7 @@ main()
     sys_PrintString("Parent PID: ");
     sys_PrintInt(sys_GetPID());
     sys_PrintChar('\n');
-    //x = sys_Fork();
-    x=0;
+    x = sys_Fork();
     if (x == 0) {
        sys_PrintString("Child PID: ");
        sys_PrintInt(sys_GetPID());
@@ -29,6 +28,7 @@ main()
        sys_PrintString(" instructions.\n");
     }
     else {
+       sys_Sleep(50000);
        sys_PrintString("Parent after fork waiting for child: ");
        sys_PrintInt(x);
        sys_PrintChar('\n');

@@ -122,13 +122,6 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     numPages = parentSpace->GetNumPages();
     unsigned i, size = numPages * PageSize;
 
-    ASSERT(numPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
-                                                                                // to run anything too big --
-                                                                                // at least until we have
-                                                                                // virtual memory
-
-    DEBUG('a', "Initializing address space, num pages %d, size %d\n",
-                                        numPages, size);
     // first, set up the translation
     TranslationEntry* parentPageTable = parentSpace->GetPageTable();
     pageTable = new TranslationEntry[numPages];
@@ -143,7 +136,7 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
                                                     // pages to be read-only
     }
 
-    // Copy the contents
+    // Copy contents from Parent's mainMemory to Child's mainMemory
     unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
     unsigned startAddrChild = numPagesAllocated*PageSize;
     for (i=0; i<size; i++) {
