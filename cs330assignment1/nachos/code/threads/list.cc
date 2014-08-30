@@ -17,7 +17,7 @@
 
 #include "copyright.h"
 #include "list.h"
-#include "system.h"
+
 //----------------------------------------------------------------------
 // ListElement::ListElement
 // 	Initialize a list element, so it can be added somewhere on a list.
@@ -236,30 +236,3 @@ List::SortedRemove(int *keyPtr)
     return thing;
 }
 
-void*
-List::FindInList(void* item)
-{
-    ListElement* prev = first;
-    void* retitem;
-    Thread* temp;
-    int parentid, childppid;
-    Thread *item1=(Thread *)item;
-    childppid = item1->getPpid();
-    for (ListElement *ptr = first; ptr != NULL; ptr = ptr->next) {
-        temp = (Thread *)ptr->item;
-        parentid = temp->getPid();
-        if(childppid == parentid){
-            retitem = ptr->item;
-            if(ptr == first && ptr == last){
-                first = NULL;
-                last = NULL;
-            }
-            else{
-                prev->next = ptr->next;
-            }
-            return retitem;
-        }
-        prev = ptr;
-    }
-    return NULL;
-}

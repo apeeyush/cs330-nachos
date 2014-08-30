@@ -28,7 +28,6 @@ main()
        sys_PrintString(" instructions.\n");
     }
     else {
-       sys_Sleep(50000);
        sys_PrintString("Parent after fork waiting for child: ");
        sys_PrintInt(x);
        sys_PrintChar('\n');

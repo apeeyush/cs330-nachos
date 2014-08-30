@@ -31,25 +31,13 @@
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-int Thread::MaxCount=0;
+
 Thread::Thread(char* threadName)
 {
-    
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-    MaxCount++;
-    pid = MaxCount;
-//    childpidArray[MAX_CHILD_NUMBER];
-    top=0;
-//    ppid = getPid();
-    if (currentThread != NULL){
-        ppid = currentThread->getPid();
-        currentThread->CreateNewChild(pid);
-    }else{
-      ppid = -1;
-    }
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -329,39 +317,4 @@ Thread::RestoreUserState()
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
 }
-
-//----------------------------------------------------------------------
-// Thread::ResetReturnValue
-//      Sets the syscall return value to zero. Used to set the return
-//      value of SC_Fork in the created child.
-//----------------------------------------------------------------------
-
-void
-Thread::SetForkReturnValue ()
-{
-   userRegisters[2] = 0;
-}
-
 #endif
-
-//----------------------------------------------------------------------
-// Thread::getPid
-//      Returns the PID for current process
-//----------------------------------------------------------------------
-
-int
-Thread::getPid()
-{
-    return this->pid;
-}
-
-//----------------------------------------------------------------------
-// Thread::getPpid
-//      Returns the PPID for current process
-//----------------------------------------------------------------------
-
-int
-Thread::getPpid()
-{
-    return this->ppid;
-}
