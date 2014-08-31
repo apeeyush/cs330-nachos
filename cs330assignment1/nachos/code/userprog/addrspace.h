@@ -33,8 +33,8 @@ class AddrSpace {
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
-    unsigned GetNumPages();
 
+    unsigned GetNumPages();
     TranslationEntry* GetPageTable();
 
   private:

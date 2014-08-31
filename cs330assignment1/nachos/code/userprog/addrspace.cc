@@ -86,7 +86,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i + numPagesAllocated;
+	pageTable[i].physicalPage = i;
 	pageTable[i].valid = TRUE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
@@ -115,15 +115,16 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 }
 
-// S This can be done by multiplying the first physical page number of process A by the PageSize
-// R This is essentially the number of pages of process A multiplied by the PageSize
+// Added one more initialization function
 AddrSpace::AddrSpace(AddrSpace *parentSpace)
 {
     numPages = parentSpace->GetNumPages();
-    unsigned i, size = numPages * PageSize;
+    unsigned i;
+    unsigned R = numPages * PageSize;
 
-    // first, set up the translation
+    // Get pageTable for parentspace
     TranslationEntry* parentPageTable = parentSpace->GetPageTable();
+
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
@@ -131,18 +132,16 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
-        pageTable[i].readOnly = parentPageTable[i].readOnly;    // if the code segment was entirely on
-                                                    // a separate page, we could set its
-                                                    // pages to be read-only
+        pageTable[i].readOnly = parentPageTable[i].readOnly;
     }
 
     // Copy contents from Parent's mainMemory to Child's mainMemory
-    unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
-    unsigned startAddrChild = numPagesAllocated*PageSize;
-    for (i=0; i<size; i++) {
-       machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
+    unsigned S = parentPageTable[0].physicalPage*PageSize;      // Starting index of physical address space of A
+    unsigned SC = numPagesAllocated*PageSize;                   // Starting Address for process B
+    for (i=0; i<R-1; i++) {
+       machine->mainMemory[SC+i] = machine->mainMemory[S+i];
     }
-
+    // numPages more pages have been allocated. So increase the counter
     numPagesAllocated += numPages;
 }
 
@@ -213,12 +212,14 @@ void AddrSpace::RestoreState()
     machine->pageTableSize = numPages;
 }
 
+// Returns Number of Pages
 unsigned
 AddrSpace::GetNumPages()
 {
    return numPages;
 }
 
+// Returns pageTable
 TranslationEntry*
 AddrSpace::GetPageTable()
 {

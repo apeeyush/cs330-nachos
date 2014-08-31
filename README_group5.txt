@@ -35,7 +35,7 @@ Also in the function TimerInterruptHandler() we found out which threads need to 
  scheduler->ReadyToRun() function.
 
 9.Exec
-In this, we first read the filename from mainMemory using the address supplied as argument. We contine reading it until we encounter a NULL. After this, we addrspace for the currently running thread. Then, we call StartProcess on the file.
+In this, we first read the filename from mainMemory using the address supplied as argument. We contine reading it until we encounter a NULL. After this, we addrspace for the currently running thread. Then, we call StartProcess on the file to execute it.
 
 10.Exit
 First we take exitcode passed as an argument to sys_Exit() call.
@@ -61,4 +61,7 @@ After this, we duplicate the register state to child process and set the return 
 After this, we call StackAllocate on the child process as desciped in assignment. The function passed in argument restores state and then runs the machine.
 After this, we add the child process to ReadyToRun. (Interuupt is set of before putting the child process in ReadyToRun and the state is restored later).
 Then, we return child's PID for parent process. 
+Note : We are also maintaing a global variable for storing the number of pages allocated so far.  When a new process is created, memory is allocated after the memory that has already been allocated.
 
+
+NOTE : Please ensure that the amount of simulated physical memory is sufficient to run the program. In case not, decrease input size or increase simulated memory.

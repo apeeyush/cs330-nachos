@@ -102,7 +102,7 @@ ExceptionHandler(ExceptionType which)
     }
     Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
 
-    Thread *child;    // Used by SC_Fork
+    Thread *childThread;
 
     if ((which == SyscallException) && (type == syscall_Halt)) {
   DEBUG('a', "Shutdown, initiated by user program.\n");
@@ -264,8 +264,10 @@ ExceptionHandler(ExceptionType which)
         physicalAddress++;
        }
        filename[i] = '\0';
+       // Destroy AddrSpace for current Thread
        AddrSpace* addrspace = currentThread->space;
        addrspace->~AddrSpace();
+       // Start running the executable
        StartProcess(filename);
     }
     // syscall_Sleep (syscall 9)
@@ -293,27 +295,30 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
 
-       child = new Thread("forked");
-       child->space = new AddrSpace (currentThread->space);  // Duplicates the address space
+       childThread = new Thread("child thread");
+       // Create address space for child and duplicate parent's address space to child
+       childThread->space = new AddrSpace (currentThread->space);
        // Duplicate the register state to child process
-       child->SaveUserState ();
+       childThread->SaveUserState ();
        // Reset return value (Set return value to 0)
-       child->SetForkReturnValue ();
-       child->StackAllocate (StartFun, 0); // Make it ready for a later context switch
+       childThread->SetForkReturnValue ();
+       // StackAllocate on child process so that it can switch context
+       childThread->StackAllocate (StartFun, 0);
 
+       // Put child in ReadyToRun so that it can be scheduled
        IntStatus oldLevel = interrupt->SetLevel(IntOff);
-       scheduler->ReadyToRun(child);        // ReadyToRun assumes that interrupts are disabled!
+       scheduler->ReadyToRun(childThread);
        (void) interrupt->SetLevel(oldLevel);
 
        // Return child's PID for Parent Process
-       machine->WriteRegister(2, child->getPid());
+       machine->WriteRegister(2, childThread->getPid());
     }
      // syscall_Join  (syscall 9)
     else if ((which == SyscallException) && (type == syscall_Join)) {
       int childPid=machine->ReadRegister(4);
       int flag=0;
       int parentPid=currentThread->getPid();
-      printf("%d\n",parentPid);
+      //printf("%d\n",parentPid);
       for(int i=0;i<currentThread->top;i++)
       {
         if(currentThread->childpidArray[i]==childPid)
@@ -322,7 +327,7 @@ ExceptionHandler(ExceptionType which)
           break;
         }
       }
-      printf("%d\n",parentPid);
+      //printf("%d\n",parentPid);
       if(flag==0){
         machine->WriteRegister(2,-1);
 
@@ -334,7 +339,7 @@ ExceptionHandler(ExceptionType which)
          if(threadExitArr[childPid] == 0) 
           {
             sleptby[currentThread->getPid()] = childPid;
-          //  printf("%d  $   \n",threadExitArr[childPid]);
+            //printf("%d  $   \n",threadExitArr[childPid]);
             IntStatus oldLevel = interrupt->SetLevel(IntOff);
             currentThread->Sleep();
             (void) interrupt->SetLevel(oldLevel); 
@@ -343,10 +348,7 @@ ExceptionHandler(ExceptionType which)
           {
             machine->WriteRegister(2, threadExitCode[childPid]);
           }
-         
       }
-      
-      
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -380,7 +382,7 @@ ExceptionHandler(ExceptionType which)
      if(ppid!=-1 && sleptby[ppid]==pid)
      {
       Thread * wake=currentThread->parentthread;
-      scheduler->Run(wake); 
+      scheduler->Run(wake);
      }
      for(i=0;i<2000;i++)
      {
@@ -397,12 +399,9 @@ ExceptionHandler(ExceptionType which)
      else
      {
         currentThread->Finish();
-
      }
-     
-    
-      
     }
+
    else {
   printf("Unexpected user mode exception %d %d\n", which, type);
   ASSERT(FALSE);
