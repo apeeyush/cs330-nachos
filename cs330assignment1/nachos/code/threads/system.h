@@ -15,7 +15,7 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
-
+#define MAX_THREAD_COUNT 2000
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
 						// called before anything else
@@ -28,6 +28,12 @@ extern Scheduler *scheduler;			// the ready list
 extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
+extern List* sleepQ;
+extern List *joinsleepq;
+extern unsigned numPagesAllocated;
+extern int threadExitArr[MAX_THREAD_COUNT];
+extern int threadExitCode[MAX_THREAD_COUNT];
+extern int sleptby[MAX_THREAD_COUNT];
 
 extern bool initializedConsoleSemaphores;       // Used to initialize the semaphores for console I/O exactly once
 

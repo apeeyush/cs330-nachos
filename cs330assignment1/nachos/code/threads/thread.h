@@ -49,7 +49,7 @@
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
 // For simplicity, this is just the max over all architectures.
 #define MachineStateSize 18 
-
+#define MAX_CHILD_NUMBER 100
 
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
@@ -79,7 +79,7 @@ class Thread {
     // THEY MUST be in this position for SWITCH to work.
     int* stackTop;			 // the current stack pointer
     int machineState[MachineStateSize];  // all registers except for stackTop
-
+    
   public:
     Thread(char* debugName);		// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
@@ -88,7 +88,7 @@ class Thread {
 					// is called
 
     // basic thread operations
-
+    Thread *parentthread;
     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any 
 						// other thread is runnable
@@ -101,7 +101,28 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-
+    // PID Manipulation
+    static int MaxCount;
+    int getPid();
+    int getPpid();
+    void StackAllocate(VoidFunctionPtr func, int arg);
+                        // Allocate a stack for thread.
+                    // Used internally by Fork()
+    void Startup();                 // Called by the startup function of SC_Fork to cleanly start a forked child after it is scheduled
+    void ResetReturnValue();               // Used by SC_Fork to set the return value of child to zero
+    void Schedule();                   // Called by SC_Fork to enqueue the newly created child thread in the ready queue
+    void CreateNewChild(int pid)
+    {
+        if(top<MAX_CHILD_NUMBER)
+        {
+            childpidArray[top]=pid;
+            top++;
+        }
+    };
+    int childpidArray[MAX_CHILD_NUMBER];
+    int top;
+    int instructions;
+    void SetForkReturnValue();
   private:
     // some of the private data for this class is listed above
     
@@ -111,9 +132,7 @@ class Thread {
     ThreadStatus status;		// ready, running or blocked
     char* name;
 
-    void StackAllocate(VoidFunctionPtr func, int arg);
-    					// Allocate a stack for thread.
-					// Used internally by Fork()
+
 
     int pid, ppid;			// My pid and my parent's pid
 

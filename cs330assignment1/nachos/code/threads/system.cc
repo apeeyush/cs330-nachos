@@ -7,7 +7,7 @@
 
 #include "copyright.h"
 #include "system.h"
-
+#define MAX_THREAD_COUNT 2000
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
 
@@ -17,7 +17,12 @@ Scheduler *scheduler;			// the ready list
 Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
-					// for invoking context switches
+List *sleepQ= new List();					// for invoking context switches
+List *joinsleepq = new List();
+unsigned numPagesAllocated;              // number of physical frames allocated
+int threadExitArr[MAX_THREAD_COUNT];
+int threadExitCode[MAX_THREAD_COUNT];
+int sleptby[MAX_THREAD_COUNT];
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -39,7 +44,7 @@ bool initializedConsoleSemaphores;
 
 // External definition, to allow us to take a pointer to this function
 extern void Cleanup();
-
+ 
 
 //----------------------------------------------------------------------
 // TimerInterruptHandler
@@ -62,7 +67,33 @@ static void
 TimerInterruptHandler(int dummy)
 {
     if (interrupt->getStatus() != IdleMode)
-	interrupt->YieldOnReturn();
+    {
+	//interrupt->YieldOnReturn();
+        List *ptr;
+        ptr=sleepQ;
+        while(!sleepQ->IsEmpty())
+        {
+            // if(sleepQ->GetKey()<=stats->totalTicks) 
+            // {
+            //     scheduler->ReadyToRun((Thread *)ptr->item);
+            //     sleepQ->Remove();
+            // }
+            // else break;
+            int key;
+            Thread * t;
+            t=(Thread *)sleepQ->SortedRemove(&key);
+            if(key<=stats->totalTicks) 
+            {
+                scheduler->ReadyToRun(t);
+            }
+            else
+            {
+                sleepQ->SortedInsert(t,key);
+                break;
+            }
+        }
+        interrupt->YieldOnReturn();
+    }
 }
 
 //----------------------------------------------------------------------
@@ -83,6 +114,13 @@ Initialize(int argc, char **argv)
     bool randomYield = FALSE;
 
     initializedConsoleSemaphores = false;
+    numPagesAllocated = 0;
+
+    for(int i=0;i<MAX_THREAD_COUNT;i++)
+    {
+        threadExitArr[i]=-1;
+        sleptby[i]=-1;
+    }
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
@@ -149,6 +187,9 @@ Initialize(int argc, char **argv)
 
     interrupt->Enable();
     CallOnUserAbort(Cleanup);			// if user hits ctl-C
+
+
+
     
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg);	// this must come first
@@ -197,4 +238,3 @@ Cleanup()
     
     Exit(0);
 }
-

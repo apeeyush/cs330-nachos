@@ -31,13 +31,27 @@
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-
+int Thread::MaxCount=0;
 Thread::Thread(char* threadName)
 {
+    instructions=0;
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    MaxCount++;
+    pid = MaxCount;
+    threadExitArr[pid]=0;
+//    childpidArray[MAX_CHILD_NUMBER];
+    top=0;
+//    ppid = getPid();
+    if (currentThread != NULL){
+        parentthread = currentThread;
+        ppid = currentThread->getPid();
+        currentThread->CreateNewChild(pid);
+    }else{
+      ppid = -1;
+    }
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -220,10 +234,11 @@ Thread::Sleep ()
 
     status = BLOCKED;
     while ((nextThread = scheduler->FindNextToRun()) == NULL)
-	interrupt->Idle();	// no one to run, wait for an interrupt
+    interrupt->Idle();  // no one to run, wait for an interrupt
         
     scheduler->Run(nextThread); // returns when we've been signalled
 }
+
 
 //----------------------------------------------------------------------
 // ThreadFinish, InterruptEnable, ThreadPrint
@@ -317,4 +332,39 @@ Thread::RestoreUserState()
     for (int i = 0; i < NumTotalRegs; i++)
 	machine->WriteRegister(i, userRegisters[i]);
 }
+
+//----------------------------------------------------------------------
+// Thread::ResetReturnValue
+//      Sets the syscall return value to zero. Used to set the return
+//      value of SC_Fork in the created child.
+//----------------------------------------------------------------------
+
+void
+Thread::SetForkReturnValue ()
+{
+   userRegisters[2] = 0;
+}
+
 #endif
+
+//----------------------------------------------------------------------
+// Thread::getPid
+//      Returns the PID for current process
+//----------------------------------------------------------------------
+
+int
+Thread::getPid()
+{
+    return this->pid;
+}
+
+//----------------------------------------------------------------------
+// Thread::getPpid
+//      Returns the PPID for current process
+//----------------------------------------------------------------------
+
+int
+Thread::getPpid()
+{
+    return this->ppid;
+}

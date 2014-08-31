@@ -243,7 +243,7 @@ ExceptionHandler(ExceptionType which)
     }
     // syscall_NumInstr (syscall 7)
     else if ((which == SyscallException) && (type == syscall_NumInstr)) {
-       machine->WriteRegister(2,currentThread->instructions);
+       machine->WriteRegister(2,stats->userTicks);
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
