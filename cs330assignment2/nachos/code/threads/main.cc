@@ -108,9 +108,10 @@ main(int argc, char **argv)
 	    interrupt->Halt();		// once we start the console, then 
 					// Nachos will loop forever waiting 
 					// for console input
-		} else if(!strcmp(*argv, "-F")){		// Assignment 2 -- Batch
+	} else if(!strcmp(*argv, "-F")){		// Assignment 2 -- Batch
             ASSERT (argc > 1);
             argCount = 2;
+
 	    	char *FileName = *(argv+1);
 	    	OpenFile *openFile = fileSystem->Open(FileName);
 
@@ -121,12 +122,12 @@ main(int argc, char **argv)
 			else{
 				char *buffer = new char[1000];
 				int numBytes = openFile->Read(buffer, 1500);
-			    char executable[1000];
-		   		int exec_priority;
 			   	buffer[numBytes] = '\0';
 			   	char *buf_pos = buffer;
 			   	while(*buf_pos != '\0'){
 			   		while (*buf_pos != '\0' && *buf_pos != '\n'){
+			   			char executable[1000];
+				   		int exec_priority = 0;
 			   			int pos = 0;
 			   			while (*buf_pos != ' ' && *buf_pos != '\n'){
 				   			executable[pos] = *buf_pos;
@@ -137,14 +138,16 @@ main(int argc, char **argv)
 				   			exec_priority = 100;
 				   		}else{
 				   			buf_pos++;
-							while (*buf_pos != '\n'){
+							while (*buf_pos != '\0' && *buf_pos != '\n'){
 				   				exec_priority = exec_priority*10 + (*buf_pos - '0');
 				   				buf_pos++;
 				   			}
 				   		}
 				   		printf("%s %d\n", executable, exec_priority);
 			   		}
-			   		buf_pos++;
+			   		if (*buf_pos == '\n'){
+				   		buf_pos++;
+			   		}
 		   		}
 		    	delete [] buffer;
 		    	delete openFile;	// close file
