@@ -75,6 +75,28 @@ extern void MailTest(int networkID);
 //		ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
 //----------------------------------------------------------------------
 
+void
+BatchStartFunction (int dummy)
+{
+   currentThread->Startup();
+   machine->Run();
+}
+
+void run_thread(char* executable){
+	OpenFile *inFile = fileSystem->Open(executable);
+    if (inFile == NULL) {
+    	printf("Unable to open file %s\n", executable);
+        return;
+    }
+    Thread *child = new Thread("batch_thread");
+    child->space = new AddrSpace (inFile);
+    delete inFile;
+    child->space->InitRegisters();             // set the initial register values
+    child->SaveUserState ();
+    child->StackAllocate (BatchStartFunction, 0);
+    child->Schedule ();
+}
+
 int
 main(int argc, char **argv)
 {
@@ -144,6 +166,7 @@ main(int argc, char **argv)
 				   			}
 				   		}
 				   		printf("%s %d\n", executable, exec_priority);
+				   		run_thread(executable);
 			   		}
 			   		if (*buf_pos == '\n'){
 				   		buf_pos++;
@@ -152,6 +175,18 @@ main(int argc, char **argv)
 		    	delete [] buffer;
 		    	delete openFile;	// close file
 			}
+		int i, exitcode;
+		exitcode = 0;
+        printf("[pid %d]: Exit called. Code: %d\n", currentThread->GetPID(), exitcode);
+        // We do not wait for the children to finish.
+        // The children will continue to run.
+        // We will worry about this when and if we implement signals.
+        exitThreadArray[currentThread->GetPID()] = true;
+        // Find out if all threads have called exit
+        for (i=0; i<thread_index; i++) {
+          if (!exitThreadArray[i]) break;
+        }
+        currentThread->Exit(i==thread_index, exitcode);
 	}
 #endif // USER_PROGRAM
 #ifdef FILESYS
