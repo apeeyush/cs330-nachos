@@ -219,6 +219,24 @@ Thread::Exit (bool terminateSim, int exitcode)
 
     Thread *nextThread;
 
+    if(status == RUNNING)
+    {
+        stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
+        if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
+        {
+          stats->burst_count++;
+          stats->no_premptive_switch++;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        {
+            stats->burst_min=stats->totalTicks-curr_cpu_burst_start_time;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max)
+        {
+            stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
+        }
+
+    }
     status = BLOCKED;
 
     // Set exit code in parent's structure provided the parent hasn't exited
@@ -271,8 +289,24 @@ Thread::Yield ()
     
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
-	scheduler->ReadyToRun(this);
-	scheduler->Run(nextThread);
+    	scheduler->ReadyToRun(this);
+    	scheduler->Run(nextThread);
+    }
+    else{
+     stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
+        if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
+        {
+          stats->burst_count++;
+          stats->no_non_premptive_switch++;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        {
+            stats->burst_min=stats->totalTicks-curr_cpu_burst_start_time;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max)
+        {
+            stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
+        }
     }
     (void) interrupt->SetLevel(oldLevel);
 }
@@ -305,6 +339,26 @@ Thread::Sleep ()
     ASSERT(interrupt->getLevel() == IntOff);
     
     DEBUG('t', "Sleeping thread \"%s\"\n", getName());
+
+    //
+    if(status == RUNNING){
+      stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
+        if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
+        {
+          stats->burst_count++;
+          stats->no_non_premptive_switch++;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        {
+            stats->burst_min=stats->totalTicks-curr_cpu_burst_start_time;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max)
+        {
+            stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
+        }
+        curr_cpu_burst_start_time = stats->totalTicks;
+        thread_burst_start= curr_cpu_burst_start_time;
+    }
 
     status = BLOCKED;
     while ((nextThread = scheduler->FindNextToRun()) == NULL)

@@ -108,6 +108,7 @@ class Thread {
     void CheckOverflow();   			// Check if thread has 
 						// overflowed its stack
     void setStatus(ThreadStatus st) { status = st; }
+    ThreadStatus getStatus() {return status; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 
@@ -135,6 +136,9 @@ class Thread {
 
     void IncInstructionCount();
     unsigned GetInstructionCount();
+
+    int thread_burst_start;                     // Start of the current CPU burst
+    int ready_queue_wait_start;
 
   private:
     // some of the private data for this class is listed above

@@ -28,6 +28,17 @@ class Statistics {
 				// (this is also equal to # of
 				// user instructions executed)
 
+
+    int cpu_busy_time;       //total cpu busy time
+    int wait_time;           //waiting time in ready queue
+    int start_time;          //start time for first tick          
+    int burst_max;
+    int burst_min;
+    int burst_count;
+    int no_non_premptive_switch;
+    int no_premptive_switch;
+
+
     int numDiskReads;		// number of disk read requests
     int numDiskWrites;		// number of disk write requests
     int numConsoleCharsRead;	// number of characters read from the keyboard

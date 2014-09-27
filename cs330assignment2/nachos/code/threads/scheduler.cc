@@ -30,6 +30,7 @@
 Scheduler::Scheduler()
 { 
     readyList = new List; 
+    
 } 
 
 //----------------------------------------------------------------------
@@ -55,7 +56,28 @@ Scheduler::ReadyToRun (Thread *thread)
 {
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
+
+    if(thread->getStatus() == RUNNING)
+    {
+        stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
+        if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
+        {
+            stats->burst_count++;
+            stats->no_premptive_switch++;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        {
+            stats->burst_min=stats->totalTicks - curr_cpu_burst_start_time;
+        }
+        if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max)
+        {
+            stats->burst_max=stats->totalTicks - curr_cpu_burst_start_time;
+        }
+    }
+
+
     thread->setStatus(READY);
+    thread->ready_queue_wait_start=stats->totalTicks;
     readyList->Append((void *)thread);
 }
 
@@ -91,6 +113,10 @@ void
 Scheduler::Run (Thread *nextThread)
 {
     Thread *oldThread = currentThread;
+
+    curr_cpu_burst_start_time=stats->totalTicks;
+    nextThread->thread_burst_start = curr_cpu_burst_start_time;
+    stats->wait_time+= stats->totalTicks-nextThread->ready_queue_wait_start;
     
 #ifdef USER_PROGRAM			// ignore until running user programs 
     if (currentThread->space != NULL) {	// if this thread is a user program,

@@ -1,5 +1,5 @@
 // system.h 
-//	All global variables used in Nachos are defined here.
+// All global variables used in Nachos are defined here.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
@@ -26,24 +26,24 @@ extern int sched_algo;                 // Variable for storing scheduling algori
 
 
 // Initialization and cleanup routines
-extern void Initialize(int argc, char **argv); 	// Initialization,
-						// called before anything else
-extern void Cleanup();				// Cleanup, called when
-						// Nachos is done.
+extern void Initialize(int argc, char **argv);  // Initialization,
+                  // called before anything else
+extern void Cleanup();           // Cleanup, called when
+                  // Nachos is done.
 
-extern Thread *currentThread;			// the thread holding the CPU
-extern Thread *threadToBeDestroyed;  		// the thread that just finished
-extern Scheduler *scheduler;			// the ready list
-extern Interrupt *interrupt;			// interrupt status
-extern Statistics *stats;			// performance metrics
-extern Timer *timer;				// the hardware alarm clock
+extern Thread *currentThread;       // the thread holding the CPU
+extern Thread *threadToBeDestroyed;       // the thread that just finished
+extern Scheduler *scheduler;        // the ready list
+extern Interrupt *interrupt;        // interrupt status
+extern Statistics *stats;        // performance metrics
+extern Timer *timer;          // the hardware alarm clock
 extern unsigned numPagesAllocated;              // number of physical frames allocated
 
-extern Thread *threadArray[];  			// Array of thread pointers
+extern Thread *threadArray[];          // Array of thread pointers
 extern unsigned thread_index;                  // Index into this array (also used to assign unique pid)
 extern bool initializedConsoleSemaphores;       // Used to initialize the semaphores for console I/O exactly once
 extern bool exitThreadArray[];          // Marks exited threads
-
+extern int curr_cpu_burst_start_time;
 class TimeSortedWaitQueue {             // Needed to implement syscall_Sleep
 private:
    Thread *t;                           // Thread pointer of the sleeping thread
@@ -64,10 +64,10 @@ extern TimeSortedWaitQueue *sleepQueueHead;
 
 #ifdef USER_PROGRAM
 #include "machine.h"
-extern Machine* machine;	// user program memory and registers
+extern Machine* machine;   // user program memory and registers
 #endif
 
-#ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
+#ifdef FILESYS_NEEDED      // FILESYS or FILESYS_STUB 
 #include "filesys.h"
 extern FileSystem  *fileSystem;
 #endif
