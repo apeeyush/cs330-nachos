@@ -27,6 +27,8 @@ bool exitThreadArray[MAX_THREAD_COUNT];  //Marks exited threads
 
 TimeSortedWaitQueue *sleepQueueHead;    // Needed to implement SC_Sleep
 
+int sched_algo;
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -77,7 +79,9 @@ TimerInterruptHandler(int dummy)
            delete ptr;
         }
         //printf("[%d] Timer interrupt.\n", stats->totalTicks);
-        interrupt->YieldOnReturn();
+        if ( sched_algo == RR || sched_algo == UNIX ) {
+            interrupt->YieldOnReturn();
+        }
     }
 }
 
@@ -100,6 +104,8 @@ Initialize(int argc, char **argv)
 
     initializedConsoleSemaphores = false;
     numPagesAllocated = 0;
+
+    sched_algo = NP;                    // Use Non Preemptive Algo by default
 
     for (i=0; i<MAX_THREAD_COUNT; i++) { threadArray[i] = NULL; exitThreadArray[i] = false; }
     thread_index = 0;

@@ -146,6 +146,13 @@ main(int argc, char **argv)
 				int numBytes = openFile->Read(buffer, 1500);
 			   	buffer[numBytes] = '\0';
 			   	char *buf_pos = buffer;
+			   	// Read Scheduling Algorithm and store it in the global variable
+				sched_algo = 0;
+				while (*buf_pos != '\n' && *buf_pos != '\0'){
+					sched_algo = 10*sched_algo + (*buf_pos - '0');
+					buf_pos++;
+				}
+				// Read batch processes and schedule them
 			   	while(*buf_pos != '\0'){
 			   		while (*buf_pos != '\0' && *buf_pos != '\n'){
 			   			char executable[1000];

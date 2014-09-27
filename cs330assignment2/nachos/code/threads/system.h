@@ -18,6 +18,13 @@
 
 #define MAX_THREAD_COUNT 1000
 
+#define NP        1                    // Non-preemptive scheduling algorithm
+#define NP_SJF    2                    // Non-preemptive with burst estimation (Non-preemptive shortest next CPU burst first)
+#define RR        3                    // Round Robin
+#define UNIX      4                    // Unix scheduler
+extern int sched_algo;                 // Variable for storing scheduling algorithm to use
+
+
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
 						// called before anything else
