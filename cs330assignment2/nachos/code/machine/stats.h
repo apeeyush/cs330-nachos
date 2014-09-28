@@ -37,7 +37,12 @@ class Statistics {
     int burst_count;
     int no_non_premptive_switch;
     int no_premptive_switch;
-
+    int end_time;           //halt call
+    int total_completion_time;  
+    int max_completion_time;
+    int min_completion_time;  
+    int num_thread;
+    int sum_square_completion_time;
 
     int numDiskReads;		// number of disk read requests
     int numDiskWrites;		// number of disk write requests

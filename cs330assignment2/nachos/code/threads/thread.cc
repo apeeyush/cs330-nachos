@@ -60,6 +60,10 @@ Thread::Thread(char* threadName)
     for (i=0; i<MAX_CHILD_COUNT; i++) exitedChild[i] = false;
 
     instructionCount = 0;
+  if(pid!=0) {
+    thread_start_time=stats->totalTicks;
+    stats->num_thread++;
+  }
 }
 
 //----------------------------------------------------------------------
@@ -216,6 +220,15 @@ Thread::Exit (bool terminateSim, int exitcode)
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
     threadToBeDestroyed = currentThread;
+    if(pid !=0)
+    {
+      thread_end_time=stats->totalTicks;
+      thread_completion_time=thread_end_time-thread_start_time;
+      stats->sum_square_completion_time += (long long int )thread_completion_time * thread_completion_time ;
+      stats->total_completion_time +=thread_completion_time;
+      if(thread_completion_time < stats->min_completion_time) stats->min_completion_time=thread_completion_time;
+      if(thread_completion_time > stats->max_completion_time) stats->max_completion_time=thread_completion_time;
+    }
 
     Thread *nextThread;
 
@@ -227,7 +240,7 @@ Thread::Exit (bool terminateSim, int exitcode)
           stats->burst_count++;
           stats->no_premptive_switch++;
         }
-        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        if(  stats->totalTicks-curr_cpu_burst_start_time > 0 && (stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
         {
             stats->burst_min=stats->totalTicks-curr_cpu_burst_start_time;
         }
@@ -299,7 +312,7 @@ Thread::Yield ()
           stats->burst_count++;
           stats->no_non_premptive_switch++;
         }
-        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        if( stats->totalTicks-curr_cpu_burst_start_time > 0 && (stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
         {
             stats->burst_min=stats->totalTicks-curr_cpu_burst_start_time;
         }
@@ -348,7 +361,7 @@ Thread::Sleep ()
           stats->burst_count++;
           stats->no_non_premptive_switch++;
         }
-        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
+        if( stats->totalTicks-curr_cpu_burst_start_time > 0 && (stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
         {
             stats->burst_min=stats->totalTicks-curr_cpu_burst_start_time;
         }

@@ -1,3 +1,2 @@
 1
-../test/printtest 90
 ../test/testloop 90
