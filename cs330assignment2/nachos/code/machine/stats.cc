@@ -68,8 +68,8 @@ Statistics::Print()
     printf("Maximum completion time: %d\n", max_completion_time);
     printf("Minimum  completion time: %d\n", min_completion_time);
     printf("Average completion time: %f\n", (float)total_completion_time/num_thread);
-    // printf("sum_square_completion_time: %lld\n",sum_square_completion_time);
-    // printf("total_completion_time: %f\n",(float)(total_completion_time/num_thread*total_completion_time) );
+    printf("sum_square_completion_time: %lld\n",sum_square_completion_time);
+    printf("total_completion_time: %f\n",(float)(total_completion_time/num_thread*total_completion_time) );
     float temp= (float)(sum_square_completion_time - (total_completion_time/num_thread*total_completion_time));
     printf("Variance: %f\n", (float)temp/num_thread); 
 

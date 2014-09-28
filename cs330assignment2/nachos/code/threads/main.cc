@@ -82,13 +82,14 @@ BatchStartFunction (int dummy)
    machine->Run();
 }
 
-void run_thread(char* executable){
+void run_thread(char* executable, int exec_priority){
 	OpenFile *inFile = fileSystem->Open(executable);
     if (inFile == NULL) {
     	printf("Unable to open file %s\n", executable);
         return;
     }
     Thread *child = new Thread("batch_thread");
+    child->given_priority=exec_priority;
     child->space = new AddrSpace (inFile);
     delete inFile;
     child->space->InitRegisters();             // set the initial register values
@@ -173,7 +174,7 @@ main(int argc, char **argv)
 				   			}
 				   		}
 				   		printf("%s %d\n", executable, exec_priority);
-				   		run_thread(executable);
+				   		run_thread(executable, exec_priority);
 			   		}
 			   		if (*buf_pos == '\n'){
 				   		buf_pos++;

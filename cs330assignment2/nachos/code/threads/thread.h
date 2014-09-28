@@ -137,11 +137,15 @@ class Thread {
     void IncInstructionCount();
     unsigned GetInstructionCount();
 
-    int thread_burst_start;                      // Start of the current CPU burst
-    int ready_queue_wait_start;                  // Start tick of wait in ready queue
-    int thread_start_time;                       //start time of the thread
-    int thread_end_time;                         // exit time of the thread
+    int thread_burst_start;                     // Start of the current CPU burst
+    int ready_queue_wait_start;                // Start tick of wait in ready queue
+    int thread_start_time;                     //start time of the thread
+    int thread_end_time;                        // exit time of the thread
     int thread_completion_time;                  //completion time of the thread.
+    int basePriority;                            //Base priority of the thread
+    int priority;                                 //priority of the thread.
+    int cpuusage;                                  //cpu usage
+    int given_priority;                           // priority given in the file
     int expected_tau;                            // Expected time of next burst
   private:
     // some of the private data for this class is listed above

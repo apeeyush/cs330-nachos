@@ -73,6 +73,7 @@ Scheduler::ReadyToRun (Thread *thread)
         {
             stats->burst_max=stats->totalTicks - curr_cpu_burst_start_time;
         }
+        if(sched_algo == UNIX) NewThreadPriority();
         else if(sched_algo == NP_SJF){
             thread->expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*thread->expected_tau);
         }
@@ -95,10 +96,15 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-    if (sched_algo == NP_SJF){
-        return (Thread *)readyList->GetBestThread();
+     if (sched_algo== UNIX) {
+       return (Thread *)readyList->GetBestThread();
     }
-    return (Thread *)readyList->Remove();
+    if (sched_algo == NP_SJF){
+        return (Thread *)readyList->GetBestThread_SJF();
+    }
+    else {
+       return (Thread *)readyList->Remove();
+    }
 }
 
 //----------------------------------------------------------------------
@@ -202,4 +208,35 @@ Scheduler::Print()
 {
     printf("Ready list contents:\n");
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
+}
+
+void 
+Scheduler::NewThreadPriority()
+{
+    int i;
+    int curr_burst_time=stats->totalTicks-curr_cpu_burst_start_time;
+
+    if(curr_burst_time >0)
+    {
+    
+        int currentThreadPID=currentThread->GetPID();
+
+        int curentCpuUsage=currentThread->cpuusage;
+        curentCpuUsage= (curentCpuUsage+curr_burst_time)>>1;
+        int curr_thread_priority = currentThread->basePriority + (curentCpuUsage >>1);
+        currentThread->cpuusage = curentCpuUsage ;
+        currentThread->priority = curr_thread_priority;
+
+        for(i=0;i<thread_index;i++)
+        {
+            if(i!= currentThreadPID && !exitThreadArray[i])
+            {
+                curentCpuUsage = threadArray[i]->cpuusage;
+                curentCpuUsage = curentCpuUsage >>1;
+                curr_thread_priority = threadArray[i]->basePriority + (curentCpuUsage >>1);
+                threadArray[i]->cpuusage = curentCpuUsage ;
+                threadArray[i]->priority = curr_thread_priority;
+            }
+        }
+    }
 }

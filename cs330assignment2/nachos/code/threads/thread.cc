@@ -40,6 +40,7 @@ Thread::Thread(char* threadName)
       expected_tau = 20;      // Set to minimum quanta initially
     }
 
+
     name = threadName;
     stackTop = NULL;
     stack = NULL;
@@ -68,6 +69,14 @@ Thread::Thread(char* threadName)
     thread_start_time=stats->totalTicks;
     stats->num_thread++;
   }
+  if(sched_algo == UNIX)
+  {
+    basePriority= 50+given_priority;
+    priority= 50 +given_priority;
+    cpuusage=0;
+
+  }
+
 }
 
 //----------------------------------------------------------------------
@@ -227,7 +236,8 @@ Thread::Exit (bool terminateSim, int exitcode)
     if(pid !=0)
     {
       thread_end_time=stats->totalTicks;
-      thread_completion_time=thread_end_time-thread_start_time;
+      //thread_completion_time=thread_end_time-thread_start_time;
+      thread_completion_time=thread_end_time;
       stats->sum_square_completion_time += (long long int )thread_completion_time * thread_completion_time ;
       stats->total_completion_time +=thread_completion_time;
       if(thread_completion_time < stats->min_completion_time) stats->min_completion_time=thread_completion_time;
@@ -252,6 +262,8 @@ Thread::Exit (bool terminateSim, int exitcode)
         {
             stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
         }
+
+        if(sched_algo == UNIX) scheduler->NewThreadPriority();
 
     }
     status = BLOCKED;
@@ -303,13 +315,21 @@ Thread::Yield ()
     ASSERT(this == currentThread);
     
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
+
+    if(sched_algo == UNIX)
+    {
+      scheduler->NewThreadPriority();
+      scheduler->ReadyToRun(currentThread);
+    }
     
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
+      if(sched_algo != UNIX){
     	scheduler->ReadyToRun(this);
+    }
     	scheduler->Run(nextThread);
     }
-    else if(sched_algo!= UNIX){
+    else if(sched_algo != UNIX){
      stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
@@ -324,7 +344,7 @@ Thread::Yield ()
         {
             stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
         }
-        curr_cpu_burst_start_time = stats->totalTicks;
+        curr_cpu_burst_start_time=stats->totalTicks;
         thread_burst_start = curr_cpu_burst_start_time;
     }
     (void) interrupt->SetLevel(oldLevel);
@@ -361,7 +381,7 @@ Thread::Sleep ()
 
     //
     if(status == RUNNING){
-        stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
+      stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
           stats->burst_count++;
@@ -375,12 +395,16 @@ Thread::Sleep ()
         {
             stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
         }
+        if(sched_algo == UNIX) scheduler->NewThreadPriority();
+
         if(sched_algo == NP_SJF){
           expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*expected_tau);
         }
+
         curr_cpu_burst_start_time = stats->totalTicks;
         thread_burst_start= curr_cpu_burst_start_time;
     }
+
     status = BLOCKED;
     while ((nextThread = scheduler->FindNextToRun()) == NULL)
 	interrupt->Idle();	// no one to run, wait for an interrupt

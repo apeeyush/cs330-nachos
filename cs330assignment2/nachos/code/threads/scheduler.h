@@ -29,7 +29,7 @@ class Scheduler {
     void Print();			// Print contents of ready list
     
     void Tail();                        // Used by fork()
-
+    void NewThreadPriority();
          
 
   private:
