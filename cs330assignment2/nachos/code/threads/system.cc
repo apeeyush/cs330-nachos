@@ -29,6 +29,8 @@ TimeSortedWaitQueue *sleepQueueHead;    // Needed to implement SC_Sleep
 
 int sched_algo;
 int curr_cpu_burst_start_time;
+int TimerTicks;
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -107,6 +109,7 @@ Initialize(int argc, char **argv)
     numPagesAllocated = 0;
 
     sched_algo = NP;                    // Use Non Preemptive Algo by default
+    TimerTicks = 40;                    // Initianize Timer Ticks
 
     for (i=0; i<MAX_THREAD_COUNT; i++) { threadArray[i] = NULL; exitThreadArray[i] = false; }
     thread_index = 0;

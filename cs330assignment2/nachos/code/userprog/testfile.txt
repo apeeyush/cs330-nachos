@@ -1,2 +1,7 @@
-7
-../test/testloop 
+4
+../test/testloop 70
+../test/testloop1 70
+../test/testloop2 70
+../test/testloop3 70
+../test/testloop2 70
+../test/testloop1 70

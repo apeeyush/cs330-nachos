@@ -22,7 +22,11 @@
 #define NP_SJF    2                    // Non-preemptive with burst estimation (Non-preemptive shortest next CPU burst first)
 #define RR        3                    // Round Robin
 #define UNIX      4                    // Unix scheduler
+
+
 extern int sched_algo;                 // Variable for storing scheduling algorithm to use
+
+extern int TimerTicks;                  // (average) time between timer interrupts
 
 
 // Initialization and cleanup routines

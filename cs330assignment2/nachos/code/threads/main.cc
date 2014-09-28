@@ -98,6 +98,19 @@ void run_thread(char* executable, int exec_priority){
     child->Schedule ();
 }
 
+void
+set_timer_ticks_for_sched_algo(int sched_input_algo){
+	if(sched_input_algo == 3 || sched_input_algo == 7){
+		TimerTicks = 20;
+	}else if(sched_input_algo == 4 || sched_input_algo == 8){
+		TimerTicks = 32;
+	}else if(sched_input_algo == 5 || sched_input_algo == 9){
+		TimerTicks = 48;
+	}else if(sched_input_algo == 6 || sched_input_algo == 10){
+		TimerTicks = 20;
+	}
+}
+
 int
 main(int argc, char **argv)
 {
@@ -134,6 +147,7 @@ main(int argc, char **argv)
 	} else if(!strcmp(*argv, "-F")){		// Assignment 2 -- Batch
             ASSERT (argc > 1);
             argCount = 2;
+            int sched_input_algo;
 
 	    	char *FileName = *(argv+1);
 	    	OpenFile *openFile = fileSystem->Open(FileName);
@@ -149,10 +163,20 @@ main(int argc, char **argv)
 			   	char *buf_pos = buffer;
 			   	// Read Scheduling Algorithm and store it in the global variable
 				sched_algo = 0;
+				sched_input_algo = 0;
 				while (*buf_pos != '\n' && *buf_pos != '\0'){
-					sched_algo = 10*sched_algo + (*buf_pos - '0');
+					sched_input_algo = 10*sched_input_algo + (*buf_pos - '0');
 					buf_pos++;
 				}
+				set_timer_ticks_for_sched_algo(sched_input_algo);
+				if (sched_input_algo <= 2){
+					sched_algo = sched_input_algo;
+				}else if (3 <= sched_input_algo <= 6){
+					sched_algo = 3;
+				}else if (7 <= sched_input_algo <= 10){
+					sched_algo = 4;
+				}
+
 				// Read batch processes and schedule them
 			   	while(*buf_pos != '\0'){
 			   		while (*buf_pos != '\0' && *buf_pos != '\n'){
