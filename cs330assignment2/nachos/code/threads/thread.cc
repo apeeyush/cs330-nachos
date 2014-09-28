@@ -36,6 +36,10 @@ Thread::Thread(char* threadName)
 {
     int i;
 
+    if (sched_algo == NP_SJF){
+      expected_tau = 20;      // Set to minimum quanta initially
+    }
+
     name = threadName;
     stackTop = NULL;
     stack = NULL;
@@ -305,7 +309,7 @@ Thread::Yield ()
     	scheduler->ReadyToRun(this);
     	scheduler->Run(nextThread);
     }
-    else{
+    else if(sched_algo!= UNIX){
      stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
@@ -320,6 +324,8 @@ Thread::Yield ()
         {
             stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
         }
+        curr_cpu_burst_start_time = stats->totalTicks;
+        thread_burst_start = curr_cpu_burst_start_time;
     }
     (void) interrupt->SetLevel(oldLevel);
 }
@@ -355,7 +361,7 @@ Thread::Sleep ()
 
     //
     if(status == RUNNING){
-      stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
+        stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
           stats->burst_count++;
@@ -369,10 +375,12 @@ Thread::Sleep ()
         {
             stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
         }
+        if(sched_algo == NP_SJF){
+          expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*expected_tau);
+        }
         curr_cpu_burst_start_time = stats->totalTicks;
         thread_burst_start= curr_cpu_burst_start_time;
     }
-
     status = BLOCKED;
     while ((nextThread = scheduler->FindNextToRun()) == NULL)
 	interrupt->Idle();	// no one to run, wait for an interrupt

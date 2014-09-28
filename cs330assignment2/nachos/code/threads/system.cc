@@ -80,7 +80,9 @@ TimerInterruptHandler(int dummy)
         }
         //printf("[%d] Timer interrupt.\n", stats->totalTicks);
         if ( sched_algo == RR || sched_algo == UNIX ) {
-            interrupt->YieldOnReturn();
+            if ((stats->totalTicks - curr_cpu_burst_start_time) >= TimerTicks){       // Ensure that we give a full quanta
+                interrupt->YieldOnReturn();
+            }
         }
     }
 }

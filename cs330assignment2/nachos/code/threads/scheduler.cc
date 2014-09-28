@@ -73,6 +73,9 @@ Scheduler::ReadyToRun (Thread *thread)
         {
             stats->burst_max=stats->totalTicks - curr_cpu_burst_start_time;
         }
+        else if(sched_algo == NP_SJF){
+            thread->expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*thread->expected_tau);
+        }
     }
 
 
@@ -92,6 +95,9 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
+    if (sched_algo == NP_SJF){
+        return (Thread *)readyList->GetBestThread();
+    }
     return (Thread *)readyList->Remove();
 }
 

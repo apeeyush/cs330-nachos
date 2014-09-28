@@ -30,7 +30,7 @@ class Statistics {
 
 
     int cpu_busy_time;       //total cpu busy time
-    int wait_time;           //waiting time in ready queue
+    long long int wait_time;           //waiting time in ready queue
     int start_time;          //start time for first tick          
     int burst_max;
     int burst_min;
@@ -38,11 +38,11 @@ class Statistics {
     int no_non_premptive_switch;
     int no_premptive_switch;
     int end_time;           //halt call
-    int total_completion_time;  
+    long long int total_completion_time;  
     int max_completion_time;
     int min_completion_time;  
     int num_thread;
-    int sum_square_completion_time;
+    long long int sum_square_completion_time;
 
     int numDiskReads;		// number of disk read requests
     int numDiskWrites;		// number of disk write requests
@@ -71,6 +71,6 @@ class Statistics {
 #define SeekTime 	500    	// time disk takes to seek past one track
 #define ConsoleTime 	100	// time to read or write one character
 #define NetworkTime 	100   	// time to send or receive one packet
-#define TimerTicks 	100    	// (average) time between timer interrupts
+#define TimerTicks 	20    	// (average) time between timer interrupts
 
 #endif // STATS_H
