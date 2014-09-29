@@ -236,87 +236,89 @@ List::SortedRemove(int *keyPtr)
     return thing;
 }
 
-void*
+void *
 List::GetBestThread()
 {
-    ListElement *ptr=first, *prev=NULL, *minptr=ptr, *minprev=prev;
-   void *thing;
-   int minimum;
+    void *thing;
+    int min;                // Used for storing the min priority found thus far
+    ListElement *element = first, *prev_element = NULL, *min_element = first, *min_prev_element = NULL;
+    prev_element = NULL;
 
     if (IsEmpty())
         return NULL;
 
-    if (first == last) {        // list had one item, now has none
+    if (first == last){                     // If there is just one item in list, pop it and update data structure
         thing = first->item;
-        first = NULL;
-        last = NULL;
-    } else {
-        Thread* t = (Thread*)(minptr->item);
-        minimum = t->priority;
-        for (ptr = first->next, prev = first; ptr != NULL; prev = ptr, ptr = ptr->next) {
-           if (((Thread*)(ptr->item))->priority < minimum) {
-              minptr = ptr;
-              minprev = prev;
-              minimum = ((Thread*)(minptr->item))->priority;
-           }
+        first = last = NULL;
+    }else{
+        min = ((Thread*)(first->item))->priority;    // Initialize min
+        min_element = first;                // Initialize min pointer
+        min_prev_element = NULL;
+        element = first->next;
+        prev_element = first;
+        while(element != NULL){
+            if( ((Thread*)(element->item))->priority < min){
+                min_element = element;
+                min = ((Thread*)(element->item))->priority;
+                min_prev_element = prev_element;
+            }
+            prev_element = element;
+            element = element->next;
         }
-        thing = minptr->item;
-        if (minprev == NULL) { // First element has minimum priority
-           first = first->next;
-        }
-        else if (minptr->next == NULL) { // Last element has minimum priority
-           ASSERT(minprev->next == minptr);
-           minprev->next = NULL;
-           last = minprev;
-        }
-        else {
-           ASSERT(minprev->next == minptr);
-           minprev->next = minptr->next;
+        thing = min_element->item;
+        if (min_prev_element == NULL){          // First item has minimum value
+            first = first->next;
+        }else if (min_element->next == NULL){   // Last item has minimum value
+            min_prev_element->next == NULL;
+            last = min_prev_element;
+        }else{                                  // Min element is somewhere in between
+            min_prev_element->next = min_element->next;
         }
     }
-    delete minptr;
+    delete min_element;
     return thing;
 }
+
 
 void *
 List::GetBestThread_SJF()
 {
-   ListElement *ptr=first, *prev=NULL, *minptr=ptr, *minprev=prev;
-   void *thing;
-   int minimum;
+    void *thing;
+    int min;                // Used for storing the min priority found thus far
+    ListElement *element = first, *prev_element = NULL, *min_element = first, *min_prev_element = NULL;
+    prev_element = NULL;
 
     if (IsEmpty())
         return NULL;
 
-    if (first == last) {        // list had one item, now has none
+    if (first == last){                     // If there is just one item in list, pop it and update data structure
         thing = first->item;
-        first = NULL;
-        last = NULL;
-    } else {
-        minimum = ((Thread*)(minptr->item))->expected_tau;
-        for (ptr = first->next, prev = first; ptr != NULL; prev = ptr, ptr = ptr->next) {
-           if (((Thread*)(ptr->item))->expected_tau < minimum) {
-              minptr = ptr;
-              minprev = prev;
-              minimum = ((Thread*)(minptr->item))->expected_tau;
-           }
+        first = last = NULL;
+    }else{
+        min = ((Thread*)(first->item))->expected_tau;    // Initialize min
+        min_element = first;                // Initialize min pointer
+        min_prev_element = NULL;
+        element = first->next;
+        prev_element = first;
+        while(element != NULL){
+            if( ((Thread*)(element->item))->expected_tau < min){
+                min_element = element;
+                min = ((Thread*)(element->item))->expected_tau;
+                min_prev_element = prev_element;
+            }
+            prev_element = element;
+            element = element->next;
         }
-        ASSERT(minptr != NULL);
-        ASSERT(minimum == ((Thread*)(minptr->item))->expected_tau);
-        thing = minptr->item;
-        if (minprev == NULL) { // First element has minimum priority
-           first = first->next;
-        }
-        else if (minptr->next == NULL) { // Last element has minimum priority
-           ASSERT(minprev->next == minptr);
-           minprev->next = NULL;
-           last = minprev;
-        }
-        else {
-           ASSERT(minprev->next == minptr);
-           minprev->next = minptr->next;
+        thing = min_element->item;
+        if (min_prev_element == NULL){          // First item has minimum value
+            first = first->next;
+        }else if (min_element->next == NULL){   // Last item has minimum value
+            min_prev_element->next == NULL;
+            last = min_prev_element;
+        }else{                                  // Min element is somewhere in between
+            min_prev_element->next = min_element->next;
         }
     }
-    delete minptr;
+    delete min_element;
     return thing;
 }

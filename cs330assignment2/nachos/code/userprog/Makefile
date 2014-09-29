@@ -260,7 +260,14 @@ stats.o: ../machine/stats.cc ../threads/copyright.h ../threads/utility.h \
   /usr/include/gconv.h \
   /usr/lib/gcc/x86_64-redhat-linux/3.4.6/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
-  /usr/include/string.h /usr/include/xlocale.h ../machine/stats.h
+  /usr/include/string.h /usr/include/xlocale.h ../machine/stats.h \
+  ../threads/system.h ../threads/utility.h ../threads/thread.h \
+  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
+  ../userprog/addrspace.h ../threads/copyright.h ../filesys/filesys.h \
+  ../threads/copyright.h ../filesys/openfile.h ../threads/utility.h \
+  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+  ../threads/list.h ../machine/stats.h ../machine/timer.h \
+  ../filesys/filesys.h
 timer.o: ../machine/timer.cc ../threads/copyright.h ../machine/timer.h \
   ../threads/utility.h ../threads/copyright.h ../machine/sysdep.h \
   /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \

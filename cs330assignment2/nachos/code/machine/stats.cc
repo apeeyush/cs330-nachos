@@ -10,7 +10,7 @@
 #include "copyright.h"
 #include "utility.h"
 #include "stats.h"
-
+#include "system.h"
 //----------------------------------------------------------------------
 // Statistics::Statistics
 // 	Initialize performance metrics to zero, at system startup.
@@ -61,7 +61,7 @@ Statistics::Print()
     printf("Maximum cpu burst time: %d\n", burst_max);
     printf("Minimum cpu burst time: %d\n", burst_min);
     printf("Avg cpu burst time: %f\n", (float)cpu_busy_time/burst_count);
-    printf("Avg wait time: %f\n", (float)wait_time/num_thread);
+    printf("Avg wait time: %f\n", (float)wait_time/(num_thread+1));
     printf("Nonzero burst count: %d\n", burst_count);
     printf("Maximum completion time: %d\n", max_completion_time);
     printf("Minimum  completion time: %d\n", min_completion_time);
@@ -70,5 +70,7 @@ Statistics::Print()
     printf("total_completion_time: %f\n",(float)(total_completion_time/num_thread*total_completion_time) );
     float temp= (float)(sum_square_completion_time - (total_completion_time/num_thread*total_completion_time));
     printf("Variance: %f\n", (float)temp/num_thread); 
-
+    if(sched_algo == NP_SJF){
+        printf("SJF estimated error = %f", ((float)sjf_error)/cpu_busy_time*100);
+    }
 }
