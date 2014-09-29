@@ -1,4 +1,4 @@
-7
+1
 ../test/testloop 100
 ../test/testloop 90
 ../test/testloop 80

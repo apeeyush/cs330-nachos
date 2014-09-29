@@ -1,76 +1,47 @@
-02468456789012357913446688002257959137134466880022595971373414
-To6t6082
-085T9a
-25o91
-T
-7
-t3
-1lToT7Ta3T
- oto
-ol
-oTstatTt Ttoualaoasoatml ltlutla: s a ma l susls:ls 0umu u  us
-m:msm0smuS: :u:
-u:mt 0 m Sm :a0
-0:0t:0 r
-S
- 
-a 
-0tStS0Sr0S
- tat
-tt
-tStaraSa Satirtrtrttramt tatiatre t r mr t:titttett  imi i: it5memtm tmi4e:eie7iem9: :m:4m:e, 9 e 9e : 143:6,:1 E394 4  02n9,989E444d, ,4,n499  E 9 d9,,tEnE,E ,  indn nt EEmd dEdiEnne t n mndd:titdted   imi i: tt7memtm tii8e:eie8imm9: :m:4mee9 8 e 4e::1879:99:  ,780 01 99 29295,912T91929 302o1,979T193t, ,8,o195a T 5 t5,,lToT,Ta,   oto ol TTttatTt Tooialaoatottml ltlitaae t a mall:titltel   imi i: tt7memtm tii8e:eie8imm4: :m:3mee4 8 e 7e::2868:84:  
-799 92 9914999
-901525152092
-090658
-
-3
-60666
-
-
-
-Testing quatum for maximum CPU utilization 100../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
-../test/testloop 70
+../test/testloop4 100
+../test/testloop4 100
+../test/testloop4 100
+../test/testloop4 100
+../test/testloop4 100
+../test/testloop5 100
+../test/testloop5 100
+../test/testloop5 100
+../test/testloop5 100
+../test/testloop5 100
 [pid 0]: Exit called. Code: 0
-[pid 5]: Exit called. Code: 0
-[pid 7]: Exit called. Code: 0
-[pid 9]: Exit called. Code: 0
-[pid 1]: Exit called. Code: 0
-[pid 3]: Exit called. Code: 0
 [pid 6]: Exit called. Code: 0
-[pid 10]: Exit called. Code: 0
-[pid 2]: Exit called. Code: 0
+[pid 7]: Exit called. Code: 0
 [pid 8]: Exit called. Code: 0
+[pid 9]: Exit called. Code: 0
+[pid 10]: Exit called. Code: 0
+[pid 1]: Exit called. Code: 0
+[pid 2]: Exit called. Code: 0
+[pid 3]: Exit called. Code: 0
 [pid 4]: Exit called. Code: 0
+[pid 5]: Exit called. Code: 0
 
 No threads ready or runnable, and no pending interrupts.
 Assuming all programs completed.
 Machine halting!
 
-Ticks: total 163509, idle 64829, system 16160, user 82520
+Ticks: total 61830, idle 0, system 610, user 61220
 Disk I/O: reads 0, writes 0
-Console I/O: reads 0, writes 740
+Console I/O: reads 0, writes 0
 Paging: faults 0
 Network I/O: packets received 0, sent 0
 ========== Stats ==========
-Total CPU Busy Time    : 98680
-Total Execution Time   : 163509
-CPU Utilization        : 60.351418
-Maximum CPU Burst Time : 190
-Minimum CPU Burst Time : 10
-Avg CPU Burst Time     : 62.653968
-Nonzero Burst Count    : 1575
-Average Wait Time      : 67807.818182
-Maximum completion time: 163509
-Minimum completion time: 158339
-Average completion time: 162013.000000
-Variance               : 2546324.000000
+SJF estimated error    : 0.688258
+Total CPU Busy Time    : 61830
+Total Execution Time   : 61830
+CPU Utilization        : 100.000000
+Maximum CPU Burst Time : 2036
+Minimum CPU Burst Time : 34
+Avg CPU Burst Time     : 1212.352941
+Nonzero Burst Count    : 51
+Average Wait Time      : 36540.909091
+Maximum completion time: 61830
+Minimum completion time: 31014
+Average completion time: 46422.000000
+Variance               : 235317913.600000
 
 Cleaning up...
