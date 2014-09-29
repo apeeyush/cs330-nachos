@@ -26,7 +26,6 @@ class List {
     bool Empty();		// is the list empty? 
 
     void SelfTest();
-    void *GetBestThread();
     
   private:
     ListElement *first;  	// Head of the list, NULL if list is empty

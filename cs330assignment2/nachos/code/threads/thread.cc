@@ -40,7 +40,6 @@ Thread::Thread(char* threadName)
       expected_tau = 20;      // Set to minimum quanta initially
     }
 
-
     name = threadName;
     stackTop = NULL;
     stack = NULL;
@@ -71,12 +70,15 @@ Thread::Thread(char* threadName)
   }
   if(sched_algo == UNIX)
   {
-    basePriority= 50+given_priority;
-    priority= 50 +given_priority;
+    if (ppid != -1){
+      basePriority = currentThread->basePriority;
+    }
+    else{
+      basePriority = 50;
+    }
+    priority= basePriority;
     cpuusage=0;
-
   }
-
 }
 
 //----------------------------------------------------------------------
@@ -252,7 +254,6 @@ Thread::Exit (bool terminateSim, int exitcode)
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
           stats->burst_count++;
-          stats->no_premptive_switch++;
         }
         if(  stats->totalTicks-curr_cpu_burst_start_time > 0 && (stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
         {
@@ -262,9 +263,15 @@ Thread::Exit (bool terminateSim, int exitcode)
         {
             stats->burst_max=stats->totalTicks-curr_cpu_burst_start_time;
         }
-
         if(sched_algo == UNIX) scheduler->NewThreadPriority();
-
+        if(sched_algo == NP_SJF){
+          int error = stats->totalTicks - curr_cpu_burst_start_time - expected_tau;
+          if(error<0)
+            stats->sjf_error += (error*-1);
+          else
+            stats->sjf_error += error;
+          expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*expected_tau);
+        }
     }
     status = BLOCKED;
 
@@ -334,7 +341,6 @@ Thread::Yield ()
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
           stats->burst_count++;
-          stats->no_non_premptive_switch++;
         }
         if( stats->totalTicks-curr_cpu_burst_start_time > 0 && (stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
         {
@@ -385,7 +391,6 @@ Thread::Sleep ()
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
           stats->burst_count++;
-          stats->no_non_premptive_switch++;
         }
         if( stats->totalTicks-curr_cpu_burst_start_time > 0 && (stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
         {
@@ -398,6 +403,11 @@ Thread::Sleep ()
         if(sched_algo == UNIX) scheduler->NewThreadPriority();
 
         if(sched_algo == NP_SJF){
+          int error = stats->totalTicks - curr_cpu_burst_start_time - expected_tau;
+          if(error<0)
+            stats->sjf_error += (error*-1);
+          else
+            stats->sjf_error += error;
           expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*expected_tau);
         }
 
@@ -654,3 +664,13 @@ Thread::GetInstructionCount (void)
    return instructionCount;
 }
 #endif
+
+
+//---------------------------------------------------------
+// Update Thread Priority using nice value provided by user
+//---------------------------------------------------------
+void
+Thread::updatePriority (int nice_value){
+  if( 0 <= nice_value <= 100)
+    basePriority = 50 + nice_value;
+}

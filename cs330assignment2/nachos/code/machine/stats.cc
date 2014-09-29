@@ -29,14 +29,12 @@ Statistics::Statistics()
     burst_min=100000000;
     burst_count=0;
     end_time=0;
-     total_completion_time=0;  
-     max_completion_time=0;
-     min_completion_time=100000000; 
+    total_completion_time=0;  
+    max_completion_time=0;
+    min_completion_time=100000000; 
     num_thread=0;
     sum_square_completion_time = 0;
-
-    no_non_premptive_switch = 0 ;
-    no_premptive_switch = 0;
+    sjf_error = 0;
 }
 
 //----------------------------------------------------------------------

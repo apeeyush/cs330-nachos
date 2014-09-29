@@ -53,7 +53,6 @@
 #include "utility.h"
 #include "system.h"
 
-
 // External functions used by this file
 
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
@@ -89,6 +88,7 @@ void run_thread(char* executable, int exec_priority){
         return;
     }
     Thread *child = new Thread("batch_thread");
+    child->updatePriority(exec_priority);
     child->given_priority=exec_priority;
     child->space = new AddrSpace (inFile);
     delete inFile;
@@ -101,11 +101,11 @@ void run_thread(char* executable, int exec_priority){
 void
 set_timer_ticks_for_sched_algo(int sched_input_algo){
 	if(sched_input_algo == 3 || sched_input_algo == 7){
-		TimerTicks = 20;
+		TimerTicks = 33;
 	}else if(sched_input_algo == 4 || sched_input_algo == 8){
-		TimerTicks = 32;
+		TimerTicks = 65;
 	}else if(sched_input_algo == 5 || sched_input_algo == 9){
-		TimerTicks = 48;
+		TimerTicks = 98;
 	}else if(sched_input_algo == 6 || sched_input_algo == 10){
 		TimerTicks = 20;
 	}

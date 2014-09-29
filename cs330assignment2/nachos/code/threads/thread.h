@@ -136,6 +136,7 @@ class Thread {
 
     void IncInstructionCount();
     unsigned GetInstructionCount();
+    void updatePriority(int);
 
     int thread_burst_start;                     // Start of the current CPU burst
     int ready_queue_wait_start;                // Start tick of wait in ready queue
