@@ -59,20 +59,18 @@ Disk I/O: reads 0, writes 0
 Console I/O: reads 0, writes 740
 Paging: faults 0
 Network I/O: packets received 0, sent 0
-=========Stats===========
-Total CPU busy time: 98680
-Total execution time: 163509
-CPU Utilization: 60.351418
-Maximum cpu burst time: 190
-Minimum cpu burst time: 10
-Avg cpu burst time: 62.653968
-Avg wait time: 67807.818182
-Nonzero burst count: 1575
+========== Stats ==========
+Total CPU Busy Time    : 98680
+Total Execution Time   : 163509
+CPU Utilization        : 60.351418
+Maximum CPU Burst Time : 190
+Minimum CPU Burst Time : 10
+Avg CPU Burst Time     : 62.653968
+Nonzero Burst Count    : 1575
+Average Wait Time      : 67807.818182
 Maximum completion time: 163509
-Minimum  completion time: 158339
+Minimum completion time: 158339
 Average completion time: 162013.000000
-sum_square_completion_time: 262507584930
-total_completion_time: 262482121690.000000
-Variance: 2546324.000000
+Variance               : 2546324.000000
 
 Cleaning up...

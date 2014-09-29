@@ -57,7 +57,7 @@ Statistics::Print()
 
     printf("========== Stats ==========\n");
     if(sched_algo == NP_SJF){
-        printf("SJF estimated error    : %f", ((float)sjf_error)/cpu_busy_time*100);
+        printf("SJF estimated error    : %f", ((float)sjf_error)/cpu_busy_time);
     }
     printf("Total CPU Busy Time    : %d\n", cpu_busy_time);
     printf("Total Execution Time   : %d\n", end_time-start_time);

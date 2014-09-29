@@ -6,6 +6,7 @@ do
     `rm -f tmp`
     `touch tmp`
     `./nachos -F testfile.txt $i >> tmp`
-    `'$i ' >> stats_analytics`
-    `tail -n 14 tmp | head -n 1 >> stats_analytics`
+    util_line=$(tail -n 12 tmp | head -n 1)
+    B=$(echo $util_line | cut -d ' ' -f 4-)
+    echo "$i $B" >> stats_analytics
 done
