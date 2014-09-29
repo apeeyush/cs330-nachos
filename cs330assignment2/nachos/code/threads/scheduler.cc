@@ -99,7 +99,7 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-     if (sched_algo== UNIX) {
+    if (sched_algo== UNIX) {
        return (Thread *)readyList->GetBestThread();
     }
     if (sched_algo == NP_SJF){
@@ -130,7 +130,6 @@ Scheduler::Run (Thread *nextThread)
     Thread *oldThread = currentThread;
 
     curr_cpu_burst_start_time=stats->totalTicks;
-    nextThread->thread_burst_start = curr_cpu_burst_start_time;
     stats->wait_time+= stats->totalTicks-nextThread->ready_queue_wait_start;
     
 #ifdef USER_PROGRAM			// ignore until running user programs 

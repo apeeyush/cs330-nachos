@@ -138,7 +138,6 @@ class Thread {
     unsigned GetInstructionCount();
     void updatePriority(int);
 
-    int thread_burst_start;                     // Start of the current CPU burst
     int ready_queue_wait_start;                // Start tick of wait in ready queue
     int thread_start_time;                     //start time of the thread
     int thread_end_time;                        // exit time of the thread

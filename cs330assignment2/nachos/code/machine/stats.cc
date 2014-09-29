@@ -57,7 +57,7 @@ Statistics::Print()
 
     printf("========== Stats ==========\n");
     if(sched_algo == NP_SJF){
-        printf("SJF estimated error    : %f", ((float)sjf_error)/cpu_busy_time);
+        printf("SJF estimated error    : %f\n", ((float)sjf_error)/cpu_busy_time);
     }
     printf("Total CPU Busy Time    : %d\n", cpu_busy_time);
     printf("Total Execution Time   : %d\n", end_time-start_time);
@@ -71,6 +71,5 @@ Statistics::Print()
     printf("Minimum completion time: %d\n", min_completion_time);
     printf("Average completion time: %f\n", (float)total_completion_time/num_thread);
     float temp= (float)(sum_square_completion_time - (total_completion_time/num_thread*total_completion_time));
-    printf("Variance               : %f\n", (float)temp/num_thread); 
-
+    printf("Variance               : %f\n", (float)temp/num_thread);
 }

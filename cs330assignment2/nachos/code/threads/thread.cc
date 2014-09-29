@@ -346,7 +346,6 @@ Thread::Yield ()
           }
         }
         curr_cpu_burst_start_time=stats->totalTicks;
-        thread_burst_start = curr_cpu_burst_start_time;
     }
     (void) interrupt->SetLevel(oldLevel);
 }
@@ -664,5 +663,4 @@ Thread::updatePriority (int nice_value){
     basePriority = 50 + nice_value;
     priority = basePriority;
   }
-
 }

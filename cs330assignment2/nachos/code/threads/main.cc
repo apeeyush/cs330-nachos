@@ -75,7 +75,7 @@ extern void MailTest(int networkID);
 //----------------------------------------------------------------------
 
 void
-BatchStartFunction (int dummy)
+ThreadStartFunction (int dummy)
 {
    currentThread->Startup();
    machine->Run();
@@ -91,11 +91,11 @@ void run_thread(char* executable, int exec_priority){
     child->updatePriority(exec_priority);
     child->given_priority=exec_priority;
     child->space = new AddrSpace (inFile);
-    delete inFile;
-    child->space->InitRegisters();             // set the initial register values
+    child->space->InitRegisters();
     child->SaveUserState ();
-    child->StackAllocate (BatchStartFunction, 0);
+    child->StackAllocate (ThreadStartFunction, 0);
     child->Schedule ();
+//    printf("Thread Priority = %d\n", child->basePriority);
 }
 
 void
@@ -179,12 +179,11 @@ main(int argc, char **argv)
 
 				if (sched_input_algo <= 2){
 					sched_algo = sched_input_algo;
-				}else if (3 <= sched_input_algo <= 6){
+				}else if ( sched_input_algo >= 3 && sched_input_algo <= 6){
 					sched_algo = 3;
-				}else if (7 <= sched_input_algo <= 10){
+				}else if ( sched_input_algo >= 7 && sched_input_algo <= 10){
 					sched_algo = 4;
 				}
-
 				// Read batch processes and schedule them
 			   	while(*buf_pos != '\0'){
 			   		while (*buf_pos != '\0' && *buf_pos != '\n'){
