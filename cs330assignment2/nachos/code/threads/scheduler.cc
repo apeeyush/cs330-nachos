@@ -63,23 +63,22 @@ Scheduler::ReadyToRun (Thread *thread)
         if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
         {
             stats->burst_count++;
-        }
-        if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min)
-        {
-            stats->burst_min=stats->totalTicks - curr_cpu_burst_start_time;
-        }
-        if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max)
-        {
-            stats->burst_max=stats->totalTicks - curr_cpu_burst_start_time;
-        }
-        if(sched_algo == UNIX) NewThreadPriority();
-        else if(sched_algo == NP_SJF){
-            int error = stats->totalTicks - curr_cpu_burst_start_time - thread->expected_tau;
-            if(error<0)
-                stats->sjf_error += (error*-1);
-            else
-                stats->sjf_error += error;
-            thread->expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*thread->expected_tau);
+            if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min){
+                stats->burst_min=stats->totalTicks - curr_cpu_burst_start_time;
+            }
+            if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max){
+                stats->burst_max=stats->totalTicks - curr_cpu_burst_start_time;
+            }
+//            if(sched_algo == UNIX) NewThreadPriority();
+            if(sched_algo == NP_SJF){
+                int error = stats->totalTicks - curr_cpu_burst_start_time - thread->expected_tau;
+                if(error<0){
+                    stats->sjf_error += (error*-1);
+                }else{
+                    stats->sjf_error += error;
+                }
+                thread->expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*thread->expected_tau);
+            }
         }
     }
 
@@ -222,9 +221,7 @@ Scheduler::NewThreadPriority()
 
     if(curr_burst_time >0)
     {
-    
         int currentThreadPID=currentThread->GetPID();
-
         int curentCpuUsage=currentThread->cpuusage;
         curentCpuUsage= (curentCpuUsage+curr_burst_time)>>1;
         int curr_thread_priority = currentThread->basePriority + (curentCpuUsage >>1);

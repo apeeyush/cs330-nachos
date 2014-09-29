@@ -1,0 +1,78 @@
+02468456789012357913446688002257959137134466880022595971373414
+To6t6082
+085T9a
+25o91
+T
+7
+t3
+1lToT7Ta3T
+ oto
+ol
+oTstatTt Ttoualaoasoatml ltlutla: s a ma l susls:ls 0umu u  us
+m:msm0smuS: :u:
+u:mt 0 m Sm :a0
+0:0t:0 r
+S
+ 
+a 
+0tStS0Sr0S
+ tat
+tt
+tStaraSa Satirtrtrttramt tatiatre t r mr t:titttett  imi i: it5memtm tmi4e:eie7iem9: :m:4m:e, 9 e 9e : 143:6,:1 E394 4  02n9,989E444d, ,4,n499  E 9 d9,,tEnE,E ,  indn nt EEmd dEdiEnne t n mndd:titdted   imi i: tt7memtm tii8e:eie8imm9: :m:4mee9 8 e 4e::1879:99:  ,780 01 99 29295,912T91929 302o1,979T193t, ,8,o195a T 5 t5,,lToT,Ta,   oto ol TTttatTt Tooialaoatottml ltlitaae t a mall:titltel   imi i: tt7memtm tii8e:eie8imm4: :m:3mee4 8 e 7e::2868:84:  
+799 92 9914999
+901525152092
+090658
+
+3
+60666
+
+
+
+Testing quatum for maximum CPU utilization 100../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+../test/testloop 70
+[pid 0]: Exit called. Code: 0
+[pid 5]: Exit called. Code: 0
+[pid 7]: Exit called. Code: 0
+[pid 9]: Exit called. Code: 0
+[pid 1]: Exit called. Code: 0
+[pid 3]: Exit called. Code: 0
+[pid 6]: Exit called. Code: 0
+[pid 10]: Exit called. Code: 0
+[pid 2]: Exit called. Code: 0
+[pid 8]: Exit called. Code: 0
+[pid 4]: Exit called. Code: 0
+
+No threads ready or runnable, and no pending interrupts.
+Assuming all programs completed.
+Machine halting!
+
+Ticks: total 163509, idle 64829, system 16160, user 82520
+Disk I/O: reads 0, writes 0
+Console I/O: reads 0, writes 740
+Paging: faults 0
+Network I/O: packets received 0, sent 0
+=========Stats===========
+Total CPU busy time: 98680
+Total execution time: 163509
+CPU Utilization: 60.351418
+Maximum cpu burst time: 190
+Minimum cpu burst time: 10
+Avg cpu burst time: 62.653968
+Avg wait time: 67807.818182
+Nonzero burst count: 1575
+Maximum completion time: 163509
+Minimum  completion time: 158339
+Average completion time: 162013.000000
+sum_square_completion_time: 262507584930
+total_completion_time: 262482121690.000000
+Variance: 2546324.000000
+
+Cleaning up...

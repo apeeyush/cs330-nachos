@@ -169,6 +169,14 @@ main(int argc, char **argv)
 					buf_pos++;
 				}
 				set_timer_ticks_for_sched_algo(sched_input_algo);
+
+				// Used for testing different values of timerticks
+				if(argc == 3){
+					printf("Testing quatum for maximum CPU utilization %d",atoi(*(argv+2)));
+				//	set_timer_ticks_for_sched_algo(atoi(*(argv+2)));
+					TimerTicks = atoi(*(argv+2)) ;
+				}
+
 				if (sched_input_algo <= 2){
 					sched_algo = sched_input_algo;
 				}else if (3 <= sched_input_algo <= 6){
