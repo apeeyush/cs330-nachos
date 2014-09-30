@@ -1,47 +1,31 @@
-../test/testloop4 100
-../test/testloop4 100
-../test/testloop4 100
-../test/testloop4 100
-../test/testloop4 100
-../test/testloop5 100
-../test/testloop5 100
-../test/testloop5 100
-../test/testloop5 100
-../test/testloop5 100
+00000000
+Total sum: 0
+Start time: 49, End time: 9514, Total time: 9465
+Testing quatum for maximum CPU utilization 100../test/testloop 100
 [pid 0]: Exit called. Code: 0
-[pid 6]: Exit called. Code: 0
-[pid 7]: Exit called. Code: 0
-[pid 8]: Exit called. Code: 0
-[pid 9]: Exit called. Code: 0
-[pid 10]: Exit called. Code: 0
 [pid 1]: Exit called. Code: 0
-[pid 2]: Exit called. Code: 0
-[pid 3]: Exit called. Code: 0
-[pid 4]: Exit called. Code: 0
-[pid 5]: Exit called. Code: 0
 
 No threads ready or runnable, and no pending interrupts.
 Assuming all programs completed.
 Machine halting!
 
-Ticks: total 61830, idle 0, system 610, user 61220
+Ticks: total 16438, idle 6576, system 1610, user 8252
 Disk I/O: reads 0, writes 0
-Console I/O: reads 0, writes 0
+Console I/O: reads 0, writes 70
 Paging: faults 0
 Network I/O: packets received 0, sent 0
 ========== Stats ==========
-SJF estimated error    : 0.688258
-Total CPU Busy Time    : 61830
-Total Execution Time   : 61830
-CPU Utilization        : 100.000000
-Maximum CPU Burst Time : 2036
-Minimum CPU Burst Time : 34
-Avg CPU Burst Time     : 1212.352941
-Nonzero Burst Count    : 51
-Average Wait Time      : 36540.909091
-Maximum completion time: 61830
-Minimum completion time: 31014
-Average completion time: 46422.000000
-Variance               : 235317913.600000
+Total CPU Busy Time    : 9862
+Total Execution Time   : 16438
+CPU Utilization        : 59.995133
+Maximum CPU Burst Time : 190
+Minimum CPU Burst Time : 10
+Avg CPU Burst Time     : 63.217949
+Nonzero Burst Count    : 156
+Average Wait Time      : 5.000000
+Maximum completion time: 16438
+Minimum completion time: 16438
+Average completion time: 16438.000000
+Variance               : 0.000000
 
 Cleaning up...
