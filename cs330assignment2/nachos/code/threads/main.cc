@@ -82,20 +82,20 @@ ThreadStartFunction (int dummy)
 }
 
 void run_thread(char* executable, int exec_priority){
-	OpenFile *inFile = fileSystem->Open(executable);
-    if (inFile == NULL) {
+	OpenFile *executable_content = fileSystem->Open(executable);
+    if (executable_content == NULL) {
     	printf("Unable to open file %s\n", executable);
         return;
     }
-    Thread *child = new Thread("batch_thread");
-    child->updatePriority(exec_priority);
-    child->given_priority=exec_priority;
-    child->space = new AddrSpace (inFile);
-    child->space->InitRegisters();
-    child->SaveUserState ();
-    child->StackAllocate (ThreadStartFunction, 0);
-    child->Schedule ();
-//    printf("Thread Priority = %d\n", child->basePriority);
+    Thread *batch_child = new Thread("batch_thread");
+    batch_child->updatePriority(exec_priority);
+    batch_child->given_priority=exec_priority;
+    batch_child->space = new AddrSpace (executable_content);
+    batch_child->space->InitRegisters();
+    batch_child->SaveUserState ();
+    batch_child->StackAllocate (ThreadStartFunction, 0);
+    batch_child->Schedule ();
+//    printf("Thread Priority = %d\n", batch_child->basePriority);
 }
 
 void
@@ -173,7 +173,6 @@ main(int argc, char **argv)
 				// Used for testing different values of timerticks
 				if(argc == 3){
 					printf("Testing quatum for maximum CPU utilization %d",atoi(*(argv+2)));
-				//	set_timer_ticks_for_sched_algo(atoi(*(argv+2)));
 					TimerTicks = atoi(*(argv+2)) ;
 				}
 

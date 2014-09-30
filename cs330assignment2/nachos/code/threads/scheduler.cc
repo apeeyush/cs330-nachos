@@ -59,25 +59,25 @@ Scheduler::ReadyToRun (Thread *thread)
 
     if(thread->getStatus() == RUNNING)
     {
-        stats->cpu_busy_time+= stats->totalTicks-curr_cpu_burst_start_time;
-        if((stats->totalTicks-curr_cpu_burst_start_time) > 0)
+        int burst = stats->totalTicks-curr_cpu_burst_start_time;
+        stats->cpu_busy_time+= burst;
+        if(burst > 0)
         {
             stats->burst_count++;
-            if((stats->totalTicks-curr_cpu_burst_start_time) < stats->burst_min){
-                stats->burst_min=stats->totalTicks - curr_cpu_burst_start_time;
+            if(burst < stats->burst_min){
+                stats->burst_min=burst;
             }
-            if((stats->totalTicks-curr_cpu_burst_start_time) > stats->burst_max){
-                stats->burst_max=stats->totalTicks - curr_cpu_burst_start_time;
+            if(burst > stats->burst_max){
+                stats->burst_max=burst;
             }
-//            if(sched_algo == UNIX) NewThreadPriority();
             if(sched_algo == NP_SJF){
-                int error = stats->totalTicks - curr_cpu_burst_start_time - thread->expected_tau;
+                int error = burst - thread->expected_tau;
                 if(error<0){
                     stats->sjf_error += (error*-1);
                 }else{
                     stats->sjf_error += error;
                 }
-                thread->expected_tau = (int)(0.5*(stats->totalTicks - curr_cpu_burst_start_time) + 0.5*thread->expected_tau);
+                thread->expected_tau = (int)(0.5*burst + 0.5*thread->expected_tau);
             }
         }
     }
