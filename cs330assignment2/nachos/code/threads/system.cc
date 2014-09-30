@@ -109,9 +109,9 @@ Initialize(int argc, char **argv)
     numPagesAllocated = 0;
 
     sched_algo = NP;                    // Use Non Preemptive Algo by default
-    TimerTicks = 20;                   // Initianize Timer Ticks
+    TimerTicks = 20;                   // Initianize Timer Ticks (It will be updated by main for different algos as specified in assignment)
 
-    for (i=0; i<MAX_THREAD_COUNT; i++) { threadArray[i] = NULL; exitThreadArray[i] = false; }
+    for (i=0; i<MAX_THREAD_COUNT; i++) { threadArray[i] = NULL; exitThreadArray[i] = false; }t 
     thread_index = 0;
 
     sleepQueueHead = NULL;

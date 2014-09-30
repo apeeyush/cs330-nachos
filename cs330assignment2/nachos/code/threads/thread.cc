@@ -251,15 +251,13 @@ Thread::Exit (bool terminateSim, int exitcode)
     if(status == RUNNING)
     {
       int burst = stats->totalTicks-curr_cpu_burst_start_time;
-      stats->cpu_busy_time+= burst;
       if( burst > 0){
+        stats->cpu_busy_time+= burst;
         stats->burst_count++;
-        if( burst < stats->burst_min){
+        if( burst < stats->burst_min)
           stats->burst_min=burst;
-        }
-        if( burst > stats->burst_max){
+        if( burst > stats->burst_max)
           stats->burst_max=burst;
-        }
         if(sched_algo == UNIX) scheduler->NewThreadPriority();
         if(sched_algo == NP_SJF){
           int error = burst - expected_tau;
@@ -337,15 +335,13 @@ Thread::Yield ()
     }
     else if(sched_algo != UNIX){
       int burst = stats->totalTicks-curr_cpu_burst_start_time;
-      stats->cpu_busy_time+= burst;
       if(burst > 0){
+        stats->cpu_busy_time+= burst;
         stats->burst_count++;
-        if( burst < stats->burst_min){
+        if( burst < stats->burst_min)
           stats->burst_min=burst;
-        }
-        if( burst > stats->burst_max){
+        if( burst > stats->burst_max)
           stats->burst_max=burst;
-        }
       }
       curr_cpu_burst_start_time=stats->totalTicks;
     }
@@ -384,26 +380,24 @@ Thread::Sleep ()
     //
     if(status == RUNNING){
       int burst = stats->totalTicks-curr_cpu_burst_start_time;
-      stats->cpu_busy_time+= burst;
-        if(burst > 0){
-          stats->burst_count++;
-          if( burst < stats->burst_min){
-            stats->burst_min=burst;
+      if(burst > 0){
+        stats->cpu_busy_time+= burst;
+        stats->burst_count++;
+        if( burst < stats->burst_min)
+          stats->burst_min=burst;
+        if( burst > stats->burst_max)   
+          stats->burst_max=burst;
+        if(sched_algo == UNIX) scheduler->NewThreadPriority();
+        if(sched_algo == NP_SJF){
+          int error = burst - expected_tau;
+          if(error<0){
+            stats->sjf_error += (error*-1);
+          }else{
+            stats->sjf_error += error;
           }
-          if( burst > stats->burst_max){
-            stats->burst_max=burst;
-          }
-          if(sched_algo == UNIX) scheduler->NewThreadPriority();
-          if(sched_algo == NP_SJF){
-            int error = burst - expected_tau;
-            if(error<0){
-              stats->sjf_error += (error*-1);
-            }else{
-              stats->sjf_error += error;
-            }
-            expected_tau = (int)(0.5*burst + 0.5*expected_tau);
-          }
+          expected_tau = (int)(0.5*burst + 0.5*expected_tau);
         }
+      }
     }
 
     status = BLOCKED;

@@ -56,20 +56,16 @@ Scheduler::ReadyToRun (Thread *thread)
 {
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
-
     if(thread->getStatus() == RUNNING)
     {
         int burst = stats->totalTicks-curr_cpu_burst_start_time;
-        stats->cpu_busy_time+= burst;
-        if(burst > 0)
-        {
+        if(burst > 0){
+            stats->cpu_busy_time+= burst;
             stats->burst_count++;
-            if(burst < stats->burst_min){
+            if(burst < stats->burst_min)
                 stats->burst_min=burst;
-            }
-            if(burst > stats->burst_max){
+            if(burst > stats->burst_max)
                 stats->burst_max=burst;
-            }
             if(sched_algo == NP_SJF){
                 int error = burst - thread->expected_tau;
                 if(error<0){
@@ -81,7 +77,6 @@ Scheduler::ReadyToRun (Thread *thread)
             }
         }
     }
-
 
     thread->setStatus(READY);
     thread->ready_queue_wait_start=stats->totalTicks;
@@ -212,30 +207,25 @@ Scheduler::Print()
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
 
-void 
-Scheduler::NewThreadPriority()
+void Scheduler::NewThreadPriority()
 {
-    int i;
-    int curr_burst_time=stats->totalTicks-curr_cpu_burst_start_time;
-
-    if(curr_burst_time >0)
-    {
-        int currentThreadPID=currentThread->GetPID();
-        int curentCpuUsage=currentThread->cpuusage;
-        curentCpuUsage= (curentCpuUsage+curr_burst_time)>>1;
-        int curr_thread_priority = currentThread->basePriority + (curentCpuUsage >>1);
-        currentThread->cpuusage = curentCpuUsage ;
-        currentThread->priority = curr_thread_priority;
-
-        for(i=0;i<thread_index;i++)
-        {
-            if(i!= currentThreadPID && !exitThreadArray[i])
-            {
-                curentCpuUsage = threadArray[i]->cpuusage;
-                curentCpuUsage = curentCpuUsage >>1;
-                curr_thread_priority = threadArray[i]->basePriority + (curentCpuUsage >>1);
-                threadArray[i]->cpuusage = curentCpuUsage ;
-                threadArray[i]->priority = curr_thread_priority;
+    int i, curentCpuUsage, curr_thread_priority;
+    int burst=stats->totalTicks-curr_cpu_burst_start_time;
+    if (burst > 0){
+        for(i=0;i<thread_index;i++){
+            if(!exitThreadArray[i]){
+                if( i!= currentThread->GetPID() ){
+                    curentCpuUsage = threadArray[i]->cpuusage;
+                    curentCpuUsage = curentCpuUsage/2;
+                    curr_thread_priority = threadArray[i]->basePriority + (curentCpuUsage/2);
+                    threadArray[i]->cpuusage = curentCpuUsage;
+                    threadArray[i]->priority = curr_thread_priority;
+                }else if( i == currentThread->GetPID()){
+                    curentCpuUsage = (currentThread->cpuusage+burst)/2;
+                    curr_thread_priority = currentThread->basePriority + (curentCpuUsage/2);
+                    currentThread->cpuusage = curentCpuUsage;
+                    currentThread->priority = curr_thread_priority;
+                }
             }
         }
     }

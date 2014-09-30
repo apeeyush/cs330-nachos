@@ -239,18 +239,19 @@ List::SortedRemove(int *keyPtr)
 void *
 List::GetBestThread()
 {
-   ListElement *element=first, *prev_element=NULL, *min_element=element, *prev_min_element=prev_element;
-   void *thing;
-   int minimum;
-
     if (IsEmpty())
         return NULL;
 
-    if (first == last) {        // list had one item, now has none
-        thing = first->item;
+    void *best_element;
+    int minimum;
+    ListElement *element=first, *prev_element=NULL;
+    ListElement *min_element=element, *prev_min_element=prev_element;
+
+    if (first == last) {                                  // There is just one element
+        best_element = first->item;
         first = NULL;
         last = NULL;
-    } else {
+    } else {                                              // More than one elements
         minimum = ((Thread*)(min_element->item))->priority;
         element = first->next;
         prev_element = first;
@@ -263,37 +264,36 @@ List::GetBestThread()
           prev_element = element;
           element = element->next;
         }
-        thing = min_element->item;
-        if (prev_min_element == NULL) { // First element has minimum priority
-           first = first->next;
-        }
-        else if (min_element->next == NULL) { // Last element has minimum priority
-           prev_min_element->next = NULL;
-           last = prev_min_element;
-        }
-        else {
-           prev_min_element->next = min_element->next;
+        best_element = min_element->item;
+        if (prev_min_element == NULL) {                   // If first element has min priority
+           first = first->next;                           // Update head
+        } else if (min_element->next == NULL) {           // If last element has min priority
+           prev_min_element->next = NULL;                 // Update next of last element
+           last = prev_min_element;                       // Update Tail
+        } else {
+           prev_min_element->next = min_element->next;    // The element is in between
         }
     }
     delete min_element;
-    return thing;
+    return best_element;
 }
 
 void*
 List::GetBestThread_SJF (void)
 {
-   ListElement *element=first, *prev_element=NULL, *min_element=element, *prev_min_element=prev_element;
-   void *thing;
-   int minimum;
-
     if (IsEmpty())
         return NULL;
 
-    if (first == last) {        // list had one item, now has none
-        thing = first->item;
+    void *best_element;
+    int minimum;
+    ListElement *element=first, *prev_element=NULL;
+    ListElement *min_element=element, *prev_min_element=prev_element;
+
+    if (first == last) {                                  // There is just one element
+        best_element = first->item;
         first = NULL;
         last = NULL;
-    } else {
+    } else {                                              // More than one elements
         minimum = ((Thread*)(min_element->item))->expected_tau;
         element = first->next;
         prev_element = first;
@@ -306,18 +306,16 @@ List::GetBestThread_SJF (void)
           prev_element = element;
           element = element->next;
         }
-        thing = min_element->item;
-        if (prev_min_element == NULL) { // First element has minimum priority
-           first = first->next;
-        }
-        else if (min_element->next == NULL) { // Last element has minimum priority
-           prev_min_element->next = NULL;
-           last = prev_min_element;
-        }
-        else {
-           prev_min_element->next = min_element->next;
+        best_element = min_element->item;
+        if (prev_min_element == NULL) {                   // If first element has min priority
+           first = first->next;                           // Update head
+        } else if (min_element->next == NULL) {           // If last element has min priority
+           prev_min_element->next = NULL;                 // Update next of last element
+           last = prev_min_element;                       // Update Tail
+        } else {
+           prev_min_element->next = min_element->next;    // The element is in between
         }
     }
     delete min_element;
-    return thing;
+    return best_element;
 }
