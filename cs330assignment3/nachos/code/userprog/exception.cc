@@ -27,6 +27,8 @@
 #include "console.h"
 #include "synch.h"
 
+#define divRoundUp(n,s)    (((n) / (s)) + ((((n) % (s)) > 0) ? 1 : 0))
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -300,7 +302,48 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    } else {
+    } else if ((which == SyscallException) && (type == syscall_ShmAllocate)){
+       int shm_size = machine->ReadRegister(4);
+       AddrSpace* curr_space = currentThread->space;
+       TranslationEntry *oldPageTable = curr_space->GetPageTable();
+       int old_size = curr_space->GetNumPages() * PageSize;
+       int new_size = old_size + shm_size;
+       int num_pages = divRoundUp(new_size, PageSize);
+       int old_num_pages = curr_space->GetNumPages();
+       new_size = num_pages*PageSize;
+       TranslationEntry *newPageTable = new TranslationEntry[num_pages];
+       for(int i =0; i<curr_space->GetNumPages(); i++){
+        newPageTable[i].virtualPage = i;
+        newPageTable[i].physicalPage = oldPageTable[i].physicalPage;
+        newPageTable[i].valid = oldPageTable[i].valid;
+        newPageTable[i].use = oldPageTable[i].use;
+        newPageTable[i].dirty = oldPageTable[i].dirty;
+        newPageTable[i].readOnly = oldPageTable[i].readOnly;
+        newPageTable[i].is_shared = oldPageTable[i].is_shared;
+       }
+       for(int i =old_num_pages; i<num_pages; i++){
+        newPageTable[i].virtualPage = i;
+        newPageTable[i].physicalPage = i+numPagesAllocated-old_num_pages;
+        newPageTable[i].valid = TRUE;
+        newPageTable[i].use = FALSE;
+        newPageTable[i].dirty = FALSE;
+        newPageTable[i].readOnly = FALSE;
+        newPageTable[i].is_shared = TRUE;
+       }
+       bzero(&machine->mainMemory[numPagesAllocated*PageSize], (num_pages-old_num_pages)*PageSize);
+       numPagesAllocated += num_pages - old_num_pages;
+       curr_space->SetNumPages(num_pages);
+       curr_space->SetPageTable(newPageTable);
+       machine->pageTable = newPageTable;
+       machine->pageTableSize = num_pages*PageSize;
+       machine->WriteRegister(2,old_num_pages*PageSize);
+       delete oldPageTable;
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
     }

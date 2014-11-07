@@ -35,8 +35,10 @@ class AddrSpace {
     void RestoreState();		// info on a context switch
 
     unsigned GetNumPages();
+    void SetNumPages(int new_num_pages); 
 
     TranslationEntry* GetPageTable();
+    void SetPageTable(TranslationEntry* new_page_table);
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation

@@ -96,6 +96,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
 					// a separate page, we could set its 
 					// pages to be read-only
+    pageTable[i].is_shared = FALSE;
     }
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
@@ -147,23 +148,39 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     // first, set up the translation
     TranslationEntry* parentPageTable = parentSpace->GetPageTable();
     pageTable = new TranslationEntry[numPages];
+
+    int shm_counter = 0;
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
-        pageTable[i].physicalPage = i+numPagesAllocated;
+        pageTable[i].is_shared = parentPageTable[i].is_shared;
+        if(parentPageTable[i].is_shared == FALSE){
+            pageTable[i].physicalPage = shm_counter+numPagesAllocated;
+            // Copy the contents
+            unsigned localStartAddrParent = parentPageTable[i].physicalPage*PageSize;
+            unsigned localStartAddrChild = pageTable[i].physicalPage*PageSize;
+            for (int j=0; j<PageSize; j++) {
+                machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
+            }
+            shm_counter++;
+        }else{
+            pageTable[i].physicalPage = parentPageTable[i].physicalPage;
+        }
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
         pageTable[i].readOnly = parentPageTable[i].readOnly;  	// if the code segment was entirely on
                                         			// a separate page, we could set its
                                         			// pages to be read-only
+
     }
 
-    // Copy the contents
-    unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
-    unsigned startAddrChild = numPagesAllocated*PageSize;
-    for (i=0; i<size; i++) {
-       machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
-    }
+    // Old code for copy contents
+    // // Copy the contents
+    // unsigned startAddrParent = parentPageTable[0].physicalPage*PageSize;
+    // unsigned startAddrChild = numPagesAllocated*PageSize;
+    // for (i=0; i<size; i++) {
+    //    machine->mainMemory[startAddrChild+i] = machine->mainMemory[startAddrParent+i];
+    // }
 
     numPagesAllocated += numPages;
 }
@@ -240,9 +257,21 @@ AddrSpace::GetNumPages()
 {
    return numPages;
 }
+void
+AddrSpace::SetNumPages(int new_num_pages)
+{
+    numPages=new_num_pages;
+}
+
 
 TranslationEntry*
 AddrSpace::GetPageTable()
 {
    return pageTable;
+}
+
+void
+AddrSpace::SetPageTable(TranslationEntry* new_page_table)
+{
+    pageTable=new_page_table;
 }
