@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "console.h"
 #include "synch.h"
+#include "synchop.h"
 
 #define divRoundUp(n,s)    (((n) / (s)) + ((((n) % (s)) > 0) ? 1 : 0))
 
@@ -381,7 +382,7 @@ ExceptionHandler(ExceptionType which)
         if(adjustment == -1){
           sem_list[id]->P();
         }else if(adjustment == 1){
-          sem_list[id]->P();
+          sem_list[id]->V();
         }
        }
        // Advance program counters.
@@ -390,7 +391,38 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if((which == SyscallException) && (type == syscall_SemCtl)){
-
+       int id = machine->ReadRegister(4);
+       int operation = machine->ReadRegister(5);
+       int mem_addr = machine->ReadRegister(6);
+       if(id_key_sem_map[id] != -1){
+        if(operation == SYNCH_REMOVE){
+          delete sem_list[id];
+          id_key_sem_map[id] = -1;
+          machine->WriteRegister(2,0);
+        }else if(operation == SYNCH_GET){
+          int main_mem_addr = machine->GetPA(mem_addr);
+          if(main_mem_addr!=-1){
+            machine->mainMemory[main_mem_addr] = sem_list[id]->getSemValue();
+            machine->WriteRegister(2,0);
+          }else{
+            machine->WriteRegister(2,-1);
+          }
+        }else if(operation == SYNCH_SET){
+          int main_mem_addr = machine->GetPA(mem_addr);
+          if(main_mem_addr!=-1){
+            IntStatus oldLevel = interrupt->SetLevel(IntOff);
+            sem_list[id]->setSemValue(machine->mainMemory[main_mem_addr]);
+            (void) interrupt->SetLevel(oldLevel);
+            machine->WriteRegister(2,0);
+          }else{
+            machine->WriteRegister(2,-1);
+          }
+        }else{
+          machine->WriteRegister(2,-1);
+        }
+       }else{
+        machine->WriteRegister(2,-1);
+       }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
