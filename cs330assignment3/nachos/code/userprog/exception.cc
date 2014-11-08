@@ -354,6 +354,7 @@ ExceptionHandler(ExceptionType which)
        }
        if(id == -1){
           int empty_index = -1;
+          IntStatus oldLevel = interrupt->SetLevel(IntOff);
           for(int i=0; i<MaxSemCount;i++){
             if (id_key_sem_map[i] == -1){
               empty_index = i;
@@ -365,6 +366,7 @@ ExceptionHandler(ExceptionType which)
             id = empty_index;
             sem_list[empty_index] = new Semaphore("sema", 0);
           }
+          (void) interrupt->SetLevel(oldLevel);
        }
        machine->WriteRegister(2,id);
        // Advance program counters.
@@ -373,7 +375,15 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if((which == SyscallException) && (type == syscall_SemOp)){
-
+       int id = machine->ReadRegister(4);
+       int adjustment = machine->ReadRegister(5);
+       if(id_key_sem_map[id] != -1){
+        if(adjustment == -1){
+          sem_list[id]->P();
+        }else if(adjustment == 1){
+          sem_list[id]->P();
+        }
+       }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
