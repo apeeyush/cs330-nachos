@@ -31,26 +31,34 @@ int main()
     int sleep_start, sleep_end;
     int *array = (int*)sys_ShmAllocate(2*sizeof(int));
     sys_PrintString("Parent PID: ");
-    sys_PrintInt(sys_GetPID());
     sys_PrintChar('\n');
-    x = sys_Fork();
-    if (x == 0) {
-      array[0] += 2;
-      array[1] -= 3;
-      sys_PrintInt(array[0]);
-      sys_PrintChar('\n');
-      sys_PrintInt(array[1]);
-      sys_PrintChar('\n');
-      sys_PrintString("child : ");
-      sys_PrintInt(sys_GetPID());
-    }
-    else {
-      sys_Sleep(1000);
-      array[1] -= 4;
-      sys_PrintInt(array[0]);
-      sys_PrintChar('\n');
-      sys_PrintInt(array[1]);
-      sys_Join(x);
-    }
+//    x = sys_Fork();
+    int y = sys_SemGet(1);
+    int z = sys_SemGet(2);
+    int q = sys_SemGet(1);
+    sys_PrintInt(y);
+    sys_PrintChar('\n');
+    sys_PrintInt(z);
+    sys_PrintChar('\n');
+    sys_PrintInt(q);
+    sys_PrintChar('\n');
+    // if (x == 0) {
+    //   array[0] += 2;
+    //   array[1] -= 3;
+    //   sys_PrintInt(array[0]);
+    //   sys_PrintChar('\n');
+    //   sys_PrintInt(array[1]);
+    //   sys_PrintChar('\n');
+    //   sys_PrintString("child : ");
+    //   sys_PrintInt(sys_GetPID());
+    // }
+    // else {
+    //   sys_Sleep(1000);
+    //   array[1] -= 4;
+    //   sys_PrintInt(array[0]);
+    //   sys_PrintChar('\n');
+    //   sys_PrintInt(array[1]);
+    //   sys_Join(x);
+    // }
     return 0;
 }

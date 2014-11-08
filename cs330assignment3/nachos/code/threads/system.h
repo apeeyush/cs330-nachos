@@ -15,6 +15,7 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
+#include "synch.h"
 
 #define MAX_THREAD_COUNT 1000
 #define MAX_BATCH_SIZE 100
@@ -34,6 +35,8 @@
 #define MIN_NICE_PRIORITY	0		// Highest input priority
 #define DEFAULT_BASE_PRIORITY	50		// Default base priority (used by UNIX scheduler)
 #define GET_NICE_FROM_PARENT	-1
+
+#define MaxSemCount 100
 
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
@@ -61,6 +64,10 @@ extern int *priority;			// Process priority
 extern int cpu_burst_start_time;	// Records the start of current CPU burst
 extern int completionTimeArray[];	// Records the completion time of all simulated threads
 extern bool excludeMainThread;		// Used by completion time statistics calculation
+
+extern int id_key_sem_map[];
+extern Semaphore *sem_list[];
+
 
 class TimeSortedWaitQueue {		// Needed to implement SC_Sleep
 private:

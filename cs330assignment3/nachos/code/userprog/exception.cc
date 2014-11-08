@@ -343,6 +343,49 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    else if((which == SyscallException) && (type == syscall_SemGet)){
+       int key = machine->ReadRegister(4);
+       int id = -1;
+       for(int i=0; i<MaxSemCount;i++){
+          if (id_key_sem_map[i] == key){
+            id = i;
+            break;
+          }
+       }
+       if(id == -1){
+          int empty_index = -1;
+          for(int i=0; i<MaxSemCount;i++){
+            if (id_key_sem_map[i] == -1){
+              empty_index = i;
+              break;
+            }
+          }
+          if(empty_index>=0){
+            id_key_sem_map[empty_index] = key;
+            id = empty_index;
+            sem_list[empty_index] = new Semaphore("sema", 0);
+          }
+       }
+       machine->WriteRegister(2,id);
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if((which == SyscallException) && (type == syscall_SemOp)){
+
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if((which == SyscallException) && (type == syscall_SemCtl)){
+
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);

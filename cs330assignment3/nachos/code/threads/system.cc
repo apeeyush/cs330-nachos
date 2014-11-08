@@ -36,6 +36,9 @@ int cpu_burst_start_time;        // Records the start of current CPU burst
 int completionTimeArray[MAX_THREAD_COUNT];        // Records the completion time of all simulated threads
 bool excludeMainThread;		// Used by completion time statistics calculation
 
+int id_key_sem_map[MaxSemCount];
+Semaphore *sem_list[MaxSemCount];
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -112,6 +115,11 @@ Initialize(int argc, char **argv)
     int argCount, i;
     char* debugArgs = "";
     bool randomYield = FALSE;
+
+
+   for(int i=0; i<MaxSemCount;i++){
+      id_key_sem_map[i] = -1;
+   }
 
     initializedConsoleSemaphores = false;
     numPagesAllocated = 0;
