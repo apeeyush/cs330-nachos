@@ -428,6 +428,71 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    else if((which == SyscallException) && (type == syscall_CondGet)){
+       int key = machine->ReadRegister(4);
+       int id = -1;
+       for(int i=0; i<MaxCondCount;i++){
+          if (id_key_cond_map[i] == key){
+            id = i;
+            break;
+          }
+       }
+       if(id == -1){
+          int empty_index = -1;
+          IntStatus oldLevel = interrupt->SetLevel(IntOff);
+          for(int i=0; i<MaxCondCount;i++){
+            if (id_key_cond_map[i] == -1){
+              empty_index = i;
+              break;
+            }
+          }
+          if(empty_index>=0){
+            id_key_cond_map[empty_index] = key;
+            id = empty_index;
+            cond_list[empty_index] = new Condition("cond");
+          }
+          (void) interrupt->SetLevel(oldLevel);
+       }
+       machine->WriteRegister(2,id);
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if((which == SyscallException) && (type == syscall_CondOp)){
+       int cond_id = machine->ReadRegister(4);
+       int operation = machine->ReadRegister(5);
+       int sem_id = machine->ReadRegister(6);
+       DEBUG('l', "OK\n");
+       if(id_key_sem_map[sem_id] != -1 && id_key_cond_map[cond_id] != -1){
+        if (operation == COND_OP_WAIT){
+          cond_list[cond_id]->Wait(sem_list[sem_id]);
+        }else if (operation == COND_OP_SIGNAL){
+          cond_list[cond_id]->Signal();
+        }else if (operation == COND_OP_BROADCAST){
+          cond_list[cond_id]->Broadcast();
+        }
+       }
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if((which == SyscallException) && (type == syscall_CondRemove)){
+       int cond_id = machine->ReadRegister(4);
+       if(id_key_cond_map[cond_id] != -1){
+        delete cond_list[cond_id];
+        machine->WriteRegister(2,0);
+        id_key_cond_map[cond_id] = -1;
+       }else{
+        machine->WriteRegister(2,-1);
+       }
+       // Advance program counters.
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+
+    }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);

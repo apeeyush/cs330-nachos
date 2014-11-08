@@ -37,6 +37,7 @@
 #define GET_NICE_FROM_PARENT	-1
 
 #define MaxSemCount 100
+#define MaxCondCount 100
 
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
@@ -68,6 +69,8 @@ extern bool excludeMainThread;		// Used by completion time statistics calculatio
 extern int id_key_sem_map[];
 extern Semaphore *sem_list[];
 
+extern int id_key_cond_map[];
+extern Condition *cond_list[];
 
 class TimeSortedWaitQueue {		// Needed to implement SC_Sleep
 private:

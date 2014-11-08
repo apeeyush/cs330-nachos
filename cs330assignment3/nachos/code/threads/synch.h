@@ -132,6 +132,11 @@ class Condition {
     void Broadcast(Lock *conditionLock);// the currentThread for all of 
 					// these operations
 
+    void Condition::Wait(Semaphore* mutex);
+    void Condition::Signal();
+    void Condition::Broadcast();
+    List* queue;
+
   private:
     char* name;
     // plus some other stuff you'll need to define

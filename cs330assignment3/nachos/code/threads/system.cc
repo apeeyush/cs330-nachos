@@ -39,6 +39,9 @@ bool excludeMainThread;		// Used by completion time statistics calculation
 int id_key_sem_map[MaxSemCount];
 Semaphore *sem_list[MaxSemCount];
 
+int id_key_cond_map[MaxCondCount];
+Condition *cond_list[MaxCondCount];
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -119,6 +122,10 @@ Initialize(int argc, char **argv)
 
    for(int i=0; i<MaxSemCount;i++){
       id_key_sem_map[i] = -1;
+   }
+
+   for(int i=0; i<MaxCondCount;i++){
+      id_key_cond_map[i] = -1;
    }
 
     initializedConsoleSemaphores = false;
