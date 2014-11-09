@@ -40,6 +40,8 @@ StartProcess(char *filename)
     }
     space = new AddrSpace(executable);    
     currentThread->space = space;
+    // Copy Filename for demand paging
+    strcpy(space->exec_filename,filename);
 
     delete executable;			// close file
 
@@ -50,6 +52,44 @@ StartProcess(char *filename)
     ASSERT(FALSE);			// machine->Run never returns;
 					// the address space exits
 					// by doing the syscall "exit"
+}
+
+void
+ExecProcess(char *filename)
+{
+    OpenFile *executable = fileSystem->Open(filename);
+    AddrSpace *space;
+
+    if (executable == NULL) {
+      printf("Unable to open file %s\n", filename);
+      return;
+    }
+
+    AddrSpace *old_space = currentThread->space;
+    TranslationEntry* old_table = old_space->GetPageTable();
+    for(int i=0; i<old_space->GetNumPages(); i++){
+      if(old_table[i].valid && !old_table[i].is_shared){
+        int *temp = new int(old_table[i].physicalPage);
+        unallocated_pages->Append((void *)temp);
+      }
+    }
+    delete old_table;
+    delete currentThread->fallMem;
+
+    space = new AddrSpace(executable);    
+    currentThread->space = space;
+    // Copy Filename for demand paging
+    strcpy(space->exec_filename,filename);
+
+    delete executable;      // close file
+
+    space->InitRegisters();   // set the initial register values
+    space->RestoreState();    // load page table register
+
+    machine->Run();     // jump to the user progam
+    ASSERT(FALSE);      // machine->Run never returns;
+          // the address space exits
+          // by doing the syscall "exit"
 }
 
 // Data structures needed for the console test.  Threads making

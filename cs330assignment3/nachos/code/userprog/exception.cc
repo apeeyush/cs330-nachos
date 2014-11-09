@@ -58,6 +58,7 @@ static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
 extern void StartProcess (char*);
+extern void ExecProcess (char*);
 
 void
 ForkStartFunction (int dummy)
@@ -132,7 +133,7 @@ ExceptionHandler(ExceptionType which)
           machine->ReadMem(vaddr, 1, &memval);
        }
        buffer[i] = (*(char*)&memval);
-       StartProcess(buffer);
+       ExecProcess(buffer);
     }
     else if ((which == SyscallException) && (type == syscall_Join)) {
        waitpid = machine->ReadRegister(4);
@@ -217,12 +218,22 @@ ExceptionHandler(ExceptionType which)
     }
     else if ((which == SyscallException) && (type == syscall_PrintString)) {
        vaddr = machine->ReadRegister(4);
-       machine->ReadMem(vaddr, 1, &memval);
+
+       bool flag = FALSE;
+       while(flag != TRUE){
+        machine->ReadMem(vaddr, 1, &memval);
+       }
+
        while ((*(char*)&memval) != '\0') {
           writeDone->P() ;
           console->PutChar(*(char*)&memval);
           vaddr++;
-          machine->ReadMem(vaddr, 1, &memval);
+
+          bool flag = FALSE;
+          while(flag != TRUE){
+            machine->ReadMem(vaddr, 1, &memval);
+          }
+
        }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -336,7 +347,7 @@ ExceptionHandler(ExceptionType which)
        curr_space->SetNumPages(num_pages);
        curr_space->SetPageTable(newPageTable);
        machine->pageTable = newPageTable;
-       machine->pageTableSize = num_pages*PageSize;
+       machine->pageTableSize = num_pages;
        machine->WriteRegister(2,old_num_pages*PageSize);
        delete oldPageTable;
        // Advance program counters.
@@ -492,6 +503,10 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
 
+    }
+    else if(which == PageFaultException){
+      currentThread->SortedInsertInWaitQueue(100+stats->totalTicks);
+      stats->numPageFaults++;
     }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);

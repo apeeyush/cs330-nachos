@@ -42,6 +42,8 @@ Semaphore *sem_list[MaxSemCount];
 int id_key_cond_map[MaxCondCount];
 Condition *cond_list[MaxCondCount];
 
+List *unallocated_pages;
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -120,13 +122,13 @@ Initialize(int argc, char **argv)
     bool randomYield = FALSE;
 
 
-   for(int i=0; i<MaxSemCount;i++){
+    for(int i=0; i<MaxSemCount;i++){
       id_key_sem_map[i] = -1;
-   }
-
-   for(int i=0; i<MaxCondCount;i++){
+    }
+    for(int i=0; i<MaxCondCount;i++){
       id_key_cond_map[i] = -1;
-   }
+    }
+    unallocated_pages = new List();
 
     initializedConsoleSemaphores = false;
     numPagesAllocated = 0;
@@ -267,3 +269,7 @@ Cleanup()
     Exit(0);
 }
 
+void
+DeleteElementFromList(){
+  
+}

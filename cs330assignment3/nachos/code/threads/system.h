@@ -72,6 +72,8 @@ extern Semaphore *sem_list[];
 extern int id_key_cond_map[];
 extern Condition *cond_list[];
 
+extern List *unallocated_pages;
+
 class TimeSortedWaitQueue {		// Needed to implement SC_Sleep
 private:
    Thread *t;				// Thread pointer of the sleeping thread
