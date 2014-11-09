@@ -222,14 +222,13 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
       }
       entry = &pageTable[vpn];
       if(flag){
-        // int *physicalPageNumber = (int *)freedPages->Remove();
-        // if(physicalPageNumber == NULL) {
-        entry->physicalPage = numPagesAllocated;
-        numPagesAllocated++;
-        // } else {
-        //     entry->physicalPage = *physicalPageNumber;
-        //     delete physicalPageNumber;
-        // }
+        int *phy_page_num = (int *)unallocated_pages->Remove();
+        if (phy_page_num != NULL){
+            entry->physicalPage = *phy_page_num;
+        }else{
+            entry->physicalPage = numPagesAllocated;
+            numPagesAllocated++;
+        }
         bzero(&machine->mainMemory[entry->physicalPage*PageSize], PageSize);
         OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
         NoffHeader noffH = currentThread->space->noffH;

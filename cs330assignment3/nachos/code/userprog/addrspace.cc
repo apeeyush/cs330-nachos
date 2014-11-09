@@ -157,14 +157,19 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
         pageTable[i].is_shared = parentPageTable[i].is_shared;
         if(parentPageTable[i].is_shared == FALSE){
             if(parentPageTable[i].valid == TRUE){
-                pageTable[i].physicalPage = allocated_counter+numPagesAllocated;
+                int *phy_page_num = (int *)unallocated_pages->Remove();
+                if (phy_page_num != NULL){
+                    pageTable[i].physicalPage = *phy_page_num;
+                }else{
+                    pageTable[i].physicalPage = allocated_counter+numPagesAllocated;
+                    allocated_counter++;
+                }
                 // Copy the contents
                 unsigned localStartAddrParent = parentPageTable[i].physicalPage*PageSize;
                 unsigned localStartAddrChild = pageTable[i].physicalPage*PageSize;
                 for (int j=0; j<PageSize; j++) {
                     machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
                 }
-                allocated_counter++;
             }else{
                 pageTable[i].physicalPage = -1;
             }

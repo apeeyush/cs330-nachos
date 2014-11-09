@@ -124,13 +124,19 @@ ExceptionHandler(ExceptionType which)
     else if ((which == SyscallException) && (type == syscall_Exec)) {
        // Copy the executable name into kernel space
        vaddr = machine->ReadRegister(4);
-       machine->ReadMem(vaddr, 1, &memval);
+       bool flag = FALSE;
+       while(flag != TRUE){
+        flag = machine->ReadMem(vaddr, 1, &memval);
+       }
        i = 0;
        while ((*(char*)&memval) != '\0') {
           buffer[i] = (*(char*)&memval);
           i++;
           vaddr++;
-          machine->ReadMem(vaddr, 1, &memval);
+          bool flag = FALSE;
+          while(flag != TRUE){
+            flag = machine->ReadMem(vaddr, 1, &memval);
+          }
        }
        buffer[i] = (*(char*)&memval);
        ExecProcess(buffer);
@@ -218,22 +224,18 @@ ExceptionHandler(ExceptionType which)
     }
     else if ((which == SyscallException) && (type == syscall_PrintString)) {
        vaddr = machine->ReadRegister(4);
-
        bool flag = FALSE;
        while(flag != TRUE){
-        machine->ReadMem(vaddr, 1, &memval);
+        flag = machine->ReadMem(vaddr, 1, &memval);
        }
-
        while ((*(char*)&memval) != '\0') {
           writeDone->P() ;
           console->PutChar(*(char*)&memval);
           vaddr++;
-
           bool flag = FALSE;
           while(flag != TRUE){
-            machine->ReadMem(vaddr, 1, &memval);
+            flag = machine->ReadMem(vaddr, 1, &memval);
           }
-
        }
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -333,17 +335,26 @@ ExceptionHandler(ExceptionType which)
         newPageTable[i].readOnly = oldPageTable[i].readOnly;
         newPageTable[i].is_shared = oldPageTable[i].is_shared;
        }
+       int num_nem_pages = 0;
        for(int i =old_num_pages; i<num_pages; i++){
         newPageTable[i].virtualPage = i;
-        newPageTable[i].physicalPage = i+numPagesAllocated-old_num_pages;
+
+        int *phy_page_num = (int *)unallocated_pages->Remove();
+        if (phy_page_num != NULL){
+            newPageTable[i].physicalPage = *phy_page_num;
+            bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
+        }else{
+            newPageTable[i].physicalPage = num_nem_pages+numPagesAllocated;
+            num_nem_pages++;
+            bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
+        }
         newPageTable[i].valid = TRUE;
         newPageTable[i].use = FALSE;
         newPageTable[i].dirty = FALSE;
         newPageTable[i].readOnly = FALSE;
         newPageTable[i].is_shared = TRUE;
        }
-       bzero(&machine->mainMemory[numPagesAllocated*PageSize], (num_pages-old_num_pages)*PageSize);
-       numPagesAllocated += num_pages - old_num_pages;
+       numPagesAllocated += num_nem_pages;
        curr_space->SetNumPages(num_pages);
        curr_space->SetPageTable(newPageTable);
        machine->pageTable = newPageTable;
