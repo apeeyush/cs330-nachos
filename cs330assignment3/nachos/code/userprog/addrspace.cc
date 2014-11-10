@@ -76,7 +76,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    ASSERT(numPages+numPagesAllocated <= NumPhysPages);		// check we're not trying
+//    ASSERT(numPages+numPagesAllocated <= NumPhysPages);		// check we're not trying
 										// to run anything too big --
 										// at least until we have
 										// virtual memory
@@ -95,6 +95,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 					// a separate page, we could set its 
 					// pages to be read-only
     pageTable[i].is_shared = FALSE;
+    pageTable[i].is_changed = FALSE;
     }
 
     currentThread->fallMem = new char[size];
@@ -137,7 +138,7 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     numPages = parentSpace->GetNumPages();
     unsigned i, size = numPages * PageSize;
 
-    ASSERT(numPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
+//    ASSERT(numPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
                                                                                 // to run anything too big --
                                                                                 // at least until we have
                                                                                 // virtual memory
@@ -164,6 +165,8 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
                     pageTable[i].physicalPage = allocated_counter+numPagesAllocated;
                     allocated_counter++;
                 }
+                phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
+                phy_to_pid[pageTable[i].physicalPage] = currentThread->GetPID();
                 // Copy the contents
                 unsigned localStartAddrParent = parentPageTable[i].physicalPage*PageSize;
                 unsigned localStartAddrChild = pageTable[i].physicalPage*PageSize;
@@ -182,7 +185,7 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
         pageTable[i].readOnly = parentPageTable[i].readOnly;  	// if the code segment was entirely on
                                         			// a separate page, we could set its
                                         			// pages to be read-only
-
+        pageTable[i].is_changed = FALSE;
     }
     numPagesAllocated += allocated_counter;
     currentThread->fallMem = new char[size];
@@ -195,7 +198,13 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
 
 AddrSpace::~AddrSpace()
 {
-   delete pageTable;
+    for(int i=0; i<numPages;i++){
+        if(pageTable[i].valid){
+            phy_to_pte[pageTable[i].physicalPage] = NULL;
+            phy_to_pid[pageTable[i].physicalPage] = -1;
+        }
+    }
+    delete pageTable;
 }
 
 //----------------------------------------------------------------------

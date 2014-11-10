@@ -267,6 +267,17 @@ Thread::Exit (bool terminateSim, int exitcode)
        }
     }
 
+    AddrSpace *old_space = space;
+    TranslationEntry* old_table = old_space->GetPageTable();
+    for(int i=0; i<old_space->GetNumPages(); i++){
+      if(old_table[i].valid && !old_table[i].is_shared){
+        int *temp = new int(old_table[i].physicalPage);
+        unallocated_pages->Append((void *)temp);
+        phy_to_pte[old_table[i].physicalPage] = NULL;
+        phy_to_pid[old_table[i].physicalPage] = -1;
+      }
+    }
+
     nextThread = scheduler->FindNextToRun();
     if (nextThread == NULL) {
        scheduler->SetEmptyReadyQueueStartTime(stats->totalTicks);

@@ -136,6 +136,9 @@ main(int argc, char **argv)
             ReadInputAndFork(*(argv + 1));
             argCount = 2;
         }
+        else if (!strcmp(*argv, "-R")){     // Specify Page Replacement Algo
+
+        }
 #endif // USER_PROGRAM
 #ifdef FILESYS
 	if (!strcmp(*argv, "-cp")) { 		// copy from UNIX to Nachos

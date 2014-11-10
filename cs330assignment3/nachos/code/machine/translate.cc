@@ -222,32 +222,75 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
       }
       entry = &pageTable[vpn];
       if(flag){
-        int *phy_page_num = (int *)unallocated_pages->Remove();
-        if (phy_page_num != NULL){
-            entry->physicalPage = *phy_page_num;
-        }else{
-            entry->physicalPage = numPagesAllocated;
-            numPagesAllocated++;
+        DEBUG('T', "In for page replacement with %d \n",numPagesAllocated);
+        for(int i=0; i<NumPhysPages; i++){
+          DEBUG('T', "%d ",phy_to_pid[i]);
         }
-        bzero(&machine->mainMemory[entry->physicalPage*PageSize], PageSize);
-        OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
-        NoffHeader noffH = currentThread->space->noffH;
-        int index_size = entry->virtualPage*PageSize;
+        DEBUG('T', "\n");
+        if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
 
-        if(noffH.code.size>index_size+PageSize){
-          DEBUG('Z', "\n Copying Code %d \n\n", index_size);
-          executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]), PageSize, noffH.code.inFileAddr + vpn*PageSize);
-        }else if(noffH.code.size>index_size && noffH.code.size<index_size+PageSize){
-          DEBUG('Z', "\n Copying Code + Data %d \n\n", index_size);
-          int my_offset = noffH.code.size-index_size;
-          executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]), my_offset, noffH.code.inFileAddr + vpn*PageSize);
-          executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize+my_offset]),PageSize-my_offset, noffH.initData.inFileAddr);
-        }else if(noffH.initData.size>0){
-          DEBUG('Z', "\n Copying Data %d \n\n", index_size);
-          int my_offset = index_size-noffH.code.size;
-          executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]),noffH.initData.size, noffH.initData.inFileAddr+my_offset);
+          DEBUG('T', "Memory Full!! Need Page Replacement\n");
+          int *phy_page_to_replace;
+          TranslationEntry *page_entry;
+          if (page_replacement_algo == RANDOM){
+            // DEBUG('T', "In if condition!!");
+            int tmp = Random()%(NumPhysPages);
+            phy_page_to_replace = &tmp;
+          }
+          DEBUG('T', "After if exit!! Page to replace : %d, PAge PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
+          page_entry = phy_to_pte[*phy_page_to_replace];
+          page_entry->valid = FALSE;
+          int other_pid = phy_to_pid[*phy_page_to_replace];
+          Thread *thread = threadArray[other_pid];
+          if(page_entry->dirty) {
+              page_entry->is_changed = TRUE;
+              for(int j=0; j<PageSize; j++) {
+                thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
+              }
+          }
+          entry->physicalPage = page_entry->physicalPage;
+          DEBUG('T', "Getting Out after successfull replacement!!");
+        }else{
+          int *phy_page_num = (int *)unallocated_pages->Remove();
+          if (phy_page_num != NULL){
+              entry->physicalPage = *phy_page_num;
+          }else{
+              entry->physicalPage = numPagesAllocated;
+              numPagesAllocated++;
+          }
         }
-        delete executable;
+
+        phy_to_pte[entry->physicalPage] = entry;
+        phy_to_pid[entry->physicalPage] = currentThread->GetPID();
+
+        DEBUG('T', "Started copying memory \n");
+
+        // Memory Copy
+        bzero(&machine->mainMemory[entry->physicalPage*PageSize], PageSize);
+        if(entry->is_changed == TRUE){
+          for(int j=0; j<PageSize;j++){
+            machine->mainMemory[entry->physicalPage*PageSize+j] = currentThread->fallMem[entry->virtualPage*PageSize+j];
+          }
+        }else{
+          OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
+          NoffHeader noffH = currentThread->space->noffH;
+          int index_size = entry->virtualPage*PageSize;
+          if(noffH.code.size>index_size+PageSize){
+            DEBUG('Z', "\n Copying Code %d \n\n", index_size);
+            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]), PageSize, noffH.code.inFileAddr + vpn*PageSize);
+          }else if(noffH.code.size>index_size && noffH.code.size<index_size+PageSize){
+            DEBUG('Z', "\n Copying Code + Data %d \n\n", index_size);
+            int my_offset = noffH.code.size-index_size;
+            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]), my_offset, noffH.code.inFileAddr + vpn*PageSize);
+            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize+my_offset]),PageSize-my_offset, noffH.initData.inFileAddr);
+          }else if(noffH.initData.size>0){
+            DEBUG('Z', "\n Copying Data %d \n\n", index_size);
+            int my_offset = index_size-noffH.code.size;
+            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]),noffH.initData.size, noffH.initData.inFileAddr+my_offset);
+          }
+          delete executable;
+        }
+        DEBUG('T', "Page replacement finished with %d \n",numPagesAllocated);
         entry->valid = TRUE;
         return PageFaultException;
       }

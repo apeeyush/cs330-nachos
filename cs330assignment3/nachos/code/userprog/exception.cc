@@ -334,6 +334,9 @@ ExceptionHandler(ExceptionType which)
         newPageTable[i].dirty = oldPageTable[i].dirty;
         newPageTable[i].readOnly = oldPageTable[i].readOnly;
         newPageTable[i].is_shared = oldPageTable[i].is_shared;
+        newPageTable[i].is_changed = oldPageTable[i].is_changed;
+        phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
+        phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
        }
        int num_nem_pages = 0;
        for(int i =old_num_pages; i<num_pages; i++){
@@ -353,6 +356,9 @@ ExceptionHandler(ExceptionType which)
         newPageTable[i].dirty = FALSE;
         newPageTable[i].readOnly = FALSE;
         newPageTable[i].is_shared = TRUE;
+        newPageTable[i].is_changed = FALSE;
+        phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
+        phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
        }
        numPagesAllocated += num_nem_pages;
        curr_space->SetNumPages(num_pages);

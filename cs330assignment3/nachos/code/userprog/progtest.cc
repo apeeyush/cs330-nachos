@@ -71,6 +71,8 @@ ExecProcess(char *filename)
       if(old_table[i].valid && !old_table[i].is_shared){
         int *temp = new int(old_table[i].physicalPage);
         unallocated_pages->Append((void *)temp);
+        phy_to_pte[old_table[i].physicalPage] = NULL;
+        phy_to_pid[old_table[i].physicalPage] = -1;
       }
     }
     delete old_table;

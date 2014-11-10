@@ -44,6 +44,11 @@ Condition *cond_list[MaxCondCount];
 
 List *unallocated_pages;
 
+int page_replacement_algo;
+
+TranslationEntry *phy_to_pte[NumPhysPages];
+int phy_to_pid[NumPhysPages];
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -120,7 +125,15 @@ Initialize(int argc, char **argv)
     int argCount, i;
     char* debugArgs = "";
     bool randomYield = FALSE;
+    page_replacement_algo = RANDOM;
 
+    for(int i=0;i<NumPhysPages;i++){
+        phy_to_pte[i] = NULL;
+    }
+
+    for(int i=0;i<NumPhysPages;i++){
+        phy_to_pid[i] = -1;
+    }
 
     for(int i=0; i<MaxSemCount;i++){
       id_key_sem_map[i] = -1;

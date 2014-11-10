@@ -39,6 +39,11 @@
 #define MaxSemCount 100
 #define MaxCondCount 100
 
+#define RANDOM 1
+#define FIFO 2
+#define LRU 3
+#define LRUCLOCK 4
+
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
 						// called before anything else
@@ -73,6 +78,12 @@ extern int id_key_cond_map[];
 extern Condition *cond_list[];
 
 extern List *unallocated_pages;
+
+extern int page_replacement_algo;
+
+extern TranslationEntry *phy_to_pte[];
+
+extern int phy_to_pid[];
 
 class TimeSortedWaitQueue {		// Needed to implement SC_Sleep
 private:

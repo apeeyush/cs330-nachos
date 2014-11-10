@@ -41,6 +41,7 @@ class TranslationEntry {
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
     bool is_shared;     // Used to check if page is shared
+    bool is_changed;
 };
 
 #endif
