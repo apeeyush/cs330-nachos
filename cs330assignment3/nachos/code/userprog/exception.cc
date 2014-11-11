@@ -361,17 +361,20 @@ ExceptionHandler(ExceptionType which)
         phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
         phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
        }
-       int num_nem_pages = 0;
        for(int i =old_num_pages; i<num_pages; i++){
         newPageTable[i].virtualPage = i;
+
+        if(numPagesAllocated >= NumPhysPages){
+          DEBUG('t',"Memory Full\n\n");
+        }
 
         int *phy_page_num = (int *)unallocated_pages->Remove();
         if (phy_page_num != NULL){
             newPageTable[i].physicalPage = *phy_page_num;
             bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
         }else{
-            newPageTable[i].physicalPage = num_nem_pages+numPagesAllocated;
-            num_nem_pages++;
+            newPageTable[i].physicalPage = numPagesAllocated;
+            numPagesAllocated++;
             bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
         }
         newPageTable[i].valid = TRUE;
@@ -383,13 +386,14 @@ ExceptionHandler(ExceptionType which)
         phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
         phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
        }
-       numPagesAllocated += num_nem_pages;
        curr_space->SetNumPages(num_pages);
        curr_space->SetPageTable(newPageTable);
        machine->pageTable = newPageTable;
        machine->pageTableSize = num_pages;
        machine->WriteRegister(2,old_num_pages*PageSize);
        delete oldPageTable;
+
+       DEBUG('t',"Allocated Shared Memory with numPagesAllocated = %d\n\n", numPagesAllocated);
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -545,6 +549,7 @@ ExceptionHandler(ExceptionType which)
 
     }
     else if(which == PageFaultException){
+      DEBUG('P', "Starting PageFaultException...\n");
       int virtAddr=machine->ReadRegister(BadVAddrReg);
       unsigned int vpn = (unsigned) virtAddr / PageSize;
       unsigned int offset = (unsigned) virtAddr % PageSize, pageFrame;
@@ -552,12 +557,14 @@ ExceptionHandler(ExceptionType which)
       TranslationEntry *entry = &pageTable[vpn];
 
       if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
-        DEBUG('T', "Memory Full!! Need Page Replacement\n");
+        DEBUG('P', "Memory Full!! Need Page Replacement\n");
         int *phy_page_to_replace;
         TranslationEntry *page_entry;
         if (page_replacement_algo == RANDOM){
-          // DEBUG('T', "In if condition!!");
           int tmp = Random()%(NumPhysPages);
+          while(phy_to_pte[tmp]->is_shared == TRUE){
+            tmp = Random()%(NumPhysPages);
+          }
           phy_page_to_replace = &tmp;
         }
         DEBUG('T', "After if exit!! Page to replace : %d, PAge PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
@@ -629,10 +636,9 @@ ExceptionHandler(ExceptionType which)
         delete exec_cont;
         delete executable;
       }
-      DEBUG('T', "Page replacement finished with %d \n",numPagesAllocated);
+      DEBUG('P', "Page replacement finished with %d \n",numPagesAllocated);
       entry->valid = TRUE;
-
-//      currentThread->SortedInsertInWaitQueue(10+stats->totalTicks);
+      DEBUG('P', "Finishing PageFaultException...\n");
       stats->numPageFaults++;
     }
     else {
