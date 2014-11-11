@@ -133,7 +133,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 //      We need to duplicate the address space of the parent.
 //----------------------------------------------------------------------
 
-AddrSpace::AddrSpace(AddrSpace *parentSpace)
+AddrSpace::AddrSpace(AddrSpace *parentSpace, int child_pid)
 {
     numPages = parentSpace->GetNumPages();
     unsigned i, size = numPages * PageSize;
@@ -152,19 +152,48 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
     strcpy(exec_filename, parentSpace->exec_filename);
     noffH = parentSpace->noffH;
 
-    int allocated_counter = 0;
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
         pageTable[i].is_shared = parentPageTable[i].is_shared;
         if(parentPageTable[i].is_shared == FALSE){
             if(parentPageTable[i].valid == TRUE){
-                int *phy_page_num = (int *)unallocated_pages->Remove();
-                if (phy_page_num != NULL){
-                    pageTable[i].physicalPage = *phy_page_num;
+                DEBUG('F', "Allocating new page for child.. numPagesAllocated = %d \n", numPagesAllocated);
+                if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
+                    DEBUG('F', "Memory Full in Fork!! Need Page Replacement\n");
+                    int *phy_page_to_replace;
+                    TranslationEntry *page_entry;
+                    if (page_replacement_algo == RANDOM){
+                        int tmp = Random()%(NumPhysPages);
+                        phy_page_to_replace = &tmp;
+                    }
+                    DEBUG('F', "Page to replace : %d, Page PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
+                    page_entry = phy_to_pte[*phy_page_to_replace];
+                    page_entry->valid = FALSE;
+                    int other_pid = phy_to_pid[*phy_page_to_replace];
+                    if(other_pid != child_pid){
+                        Thread *thread = threadArray[other_pid];
+                        if(page_entry->dirty) {
+                            DEBUG('F', "Copying parent data in backup...");
+                            page_entry->is_changed = TRUE;
+                            for(int j=0; j<PageSize; j++) {
+                                thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
+                            }
+                        }
+                    }
+
+                    pageTable[i].physicalPage = page_entry->physicalPage;
+                    DEBUG('F', "Getting Out after successfull replacement from Fork!!\n");
                 }else{
-                    pageTable[i].physicalPage = allocated_counter+numPagesAllocated;
-                    allocated_counter++;
+                    DEBUG('F', "Allocating Memory!!\n");
+                    int *phy_page_num = (int *)unallocated_pages->Remove();
+                    if (phy_page_num != NULL){
+                        pageTable[i].physicalPage = *phy_page_num;
+                    }else{
+                        pageTable[i].physicalPage = numPagesAllocated;
+                        numPagesAllocated++;
+                    }
                 }
+                // SetUp Back pointers
                 phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
                 phy_to_pid[pageTable[i].physicalPage] = currentThread->GetPID();
                 // Copy the contents
@@ -173,6 +202,7 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
                 for (int j=0; j<PageSize; j++) {
                     machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
                 }
+                DEBUG('F', "Allocating Memory Completed!!\n\n\n");
             }else{
                 pageTable[i].physicalPage = -1;
             }
@@ -187,7 +217,6 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace)
                                         			// pages to be read-only
         pageTable[i].is_changed = FALSE;
     }
-    numPagesAllocated += allocated_counter;
     currentThread->fallMem = new char[size];
 }
 

@@ -264,14 +264,15 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
         phy_to_pid[entry->physicalPage] = currentThread->GetPID();
 
         DEBUG('T', "Started copying memory \n");
-
         // Memory Copy
         bzero(&machine->mainMemory[entry->physicalPage*PageSize], PageSize);
         if(entry->is_changed == TRUE){
+          DEBUG('T', "Copying memory from backup array\n");
           for(int j=0; j<PageSize;j++){
             machine->mainMemory[entry->physicalPage*PageSize+j] = currentThread->fallMem[entry->virtualPage*PageSize+j];
           }
         }else{
+          DEBUG('T', "Copying memory from executable\n");
           OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
           NoffHeader noffH = currentThread->space->noffH;
           int index_size = entry->virtualPage*PageSize;
