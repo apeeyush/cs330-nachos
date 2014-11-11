@@ -210,6 +210,12 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 
     DEBUG('a', "\tTranslate 0x%x, %s: ", virtAddr, writing ? "write" : "read");
 
+    DEBUG('M',"Printing PIDs:\n");
+    for(int i=0; i<NumPhysPages;i++){
+      DEBUG('M', "%d ", phy_to_pid[i]);
+    }
+    DEBUG('M',"\n");
+
     // check for alignment errors
     if (((size == 4) && (virtAddr & 0x3)) || ((size == 2) && (virtAddr & 0x1))){
     	DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
@@ -234,103 +240,9 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
         flag = 1;
         DEBUG('a', "virtual page # %d too large for page table size %d!\n",
         virtAddr, pageTableSize);
-//        return PageFaultException;
-      }
-      entry = &pageTable[vpn];
-      if(flag){
-        DEBUG('T', "In for page replacement with %d \n",numPagesAllocated);
-        for(int i=0; i<NumPhysPages; i++){
-          DEBUG('T', "%d ",phy_to_pid[i]);
-        }
-        DEBUG('T', "\n");
-        if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
-
-          DEBUG('T', "Memory Full!! Need Page Replacement\n");
-          int *phy_page_to_replace;
-          TranslationEntry *page_entry;
-          if (page_replacement_algo == RANDOM){
-            // DEBUG('T', "In if condition!!");
-            int tmp = Random()%(NumPhysPages);
-            phy_page_to_replace = &tmp;
-          }
-          DEBUG('T', "After if exit!! Page to replace : %d, PAge PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
-          page_entry = phy_to_pte[*phy_page_to_replace];
-          page_entry->valid = FALSE;
-          int other_pid = phy_to_pid[*phy_page_to_replace];
-          Thread *thread = threadArray[other_pid];
-          if(page_entry->dirty) {
-              page_entry->is_changed = TRUE;
-              for(int j=0; j<PageSize; j++) {
-                thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
-              }
-          }
-          entry->physicalPage = page_entry->physicalPage;
-          DEBUG('T', "Getting Out after successfull replacement!!");
-        }else{
-          int *phy_page_num = (int *)unallocated_pages->Remove();
-          if (phy_page_num != NULL){
-              entry->physicalPage = *phy_page_num;
-          }else{
-              entry->physicalPage = numPagesAllocated;
-              numPagesAllocated++;
-          }
-        }
-
-        phy_to_pte[entry->physicalPage] = entry;
-        phy_to_pid[entry->physicalPage] = currentThread->GetPID();
-
-        DEBUG('T', "Started copying memory \n");
-        // Memory Copy
-        bzero(&machine->mainMemory[entry->physicalPage*PageSize], PageSize);
-        if(entry->is_changed == TRUE){
-          DEBUG('T', "Copying memory from backup array\n");
-          for(int j=0; j<PageSize;j++){
-            machine->mainMemory[entry->physicalPage*PageSize+j] = currentThread->fallMem[entry->virtualPage*PageSize+j];
-          }
-        }else{
-          OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
-          NoffHeader noffH;
-          executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
-          if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost(noffH.noffMagic) == NOFFMAGIC))
-            SwapHeader(&noffH);
-
-          int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
-                + UserStackSize;  // we need to increase the size
-                            // to leave room for the stack
-          int new_numPages = divRoundUp(size, PageSize);
-          size =  new_numPages * PageSize; 
-
-          char *exec_cont = new char[size];
-          bzero(exec_cont,size);
-          // Sir Code
-          if (noffH.code.size > 0) {
-            DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
-                    noffH.code.virtualAddr, noffH.code.size);
-            vpn = noffH.code.virtualAddr/PageSize;
-            offset = noffH.code.virtualAddr%PageSize;
-            pageFrame = entry->physicalPage;
-            executable->ReadAt(&(exec_cont[vpn * PageSize + offset]),
-                    noffH.code.size, noffH.code.inFileAddr);
-          }
-          if (noffH.initData.size > 0) {
-              DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
-                      noffH.initData.virtualAddr, noffH.initData.size);
-              vpn = noffH.initData.virtualAddr/PageSize;
-              offset = noffH.initData.virtualAddr%PageSize;
-              pageFrame = entry->physicalPage;
-              executable->ReadAt(&(exec_cont[vpn * PageSize + offset]),
-                      noffH.initData.size, noffH.initData.inFileAddr);
-          }
-          for(int i=0;i<PageSize;i++){
-            machine->mainMemory[entry->physicalPage*PageSize+i]=exec_cont[entry->virtualPage*PageSize+i];
-          }
-          delete exec_cont;
-          delete executable;
-        }
-        DEBUG('T', "Page replacement finished with %d \n",numPagesAllocated);
-        entry->valid = TRUE;
         return PageFaultException;
       }
+      entry = &pageTable[vpn];
     } else {
       for (entry = NULL, i = 0; i < TLBSize; i++)
         if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {

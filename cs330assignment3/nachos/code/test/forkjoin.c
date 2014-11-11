@@ -11,9 +11,6 @@ main()
     sys_PrintChar('\n');
     x = sys_Fork();
     if (x == 0) {
-       sys_PrintString("Child PID: ");
-       sys_PrintInt(sys_GetPID());
-       sys_PrintChar('\n');
        sys_PrintString("Child's parent PID: ");
        sys_PrintInt(sys_GetPPID());
        sys_PrintChar('\n');

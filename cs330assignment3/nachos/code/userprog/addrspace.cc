@@ -128,20 +128,33 @@ AddrSpace::AddrSpace(OpenFile *executable)
 //     }
 }
 
-//----------------------------------------------------------------------
-// AddrSpace::AddrSpace (AddrSpace*) is called by a forked thread.
-//      We need to duplicate the address space of the parent.
-//----------------------------------------------------------------------
 
 AddrSpace::AddrSpace(AddrSpace *parentSpace, int child_pid)
 {
     numPages = parentSpace->GetNumPages();
     unsigned i, size = numPages * PageSize;
 
-//    ASSERT(numPages+numPagesAllocated <= NumPhysPages);                // check we're not trying
-                                                                                // to run anything too big --
-                                                                                // at least until we have
-                                                                                // virtual memory
+    TranslationEntry* parentPageTable = parentSpace->GetPageTable();
+    pageTable = new TranslationEntry[numPages];
+
+    for (i = 0; i < numPages; i++) {
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = -1;
+        pageTable[i].valid = FALSE;
+        pageTable[i].is_changed = FALSE;
+    }
+}
+
+
+//----------------------------------------------------------------------
+// AddrSpace::AddrSpace (AddrSpace*) is called by a forked thread.
+//      We need to duplicate the address space of the parent.
+//----------------------------------------------------------------------
+void
+AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
+{
+    numPages = parentSpace->GetNumPages();
+    unsigned i, size = numPages * PageSize;
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n",
                                         numPages, size);
@@ -163,24 +176,24 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace, int child_pid)
                     int *phy_page_to_replace;
                     TranslationEntry *page_entry;
                     if (page_replacement_algo == RANDOM){
-                        int tmp = Random()%(NumPhysPages);
+                        int tmp = Random()%NumPhysPages;
+                        while(parentPageTable[i].physicalPage != tmp){
+                            tmp = Random()%NumPhysPages;
+                        }
                         phy_page_to_replace = &tmp;
                     }
-                    DEBUG('F', "Page to replace : %d, Page PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
+                    DEBUG('L', "Page to replace : %d, Page PID : %d \n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
                     page_entry = phy_to_pte[*phy_page_to_replace];
                     page_entry->valid = FALSE;
                     int other_pid = phy_to_pid[*phy_page_to_replace];
-                    if(other_pid != child_pid){
-                        Thread *thread = threadArray[other_pid];
-                        if(page_entry->dirty) {
-                            DEBUG('F', "Copying parent data in backup...");
-                            page_entry->is_changed = TRUE;
-                            for(int j=0; j<PageSize; j++) {
-                                thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
-                            }
+                    Thread *thread = threadArray[other_pid];
+                    if(page_entry->dirty) {
+                        DEBUG('F', "Copying parent data in backup...");
+                        page_entry->is_changed = TRUE;
+                        for(int j=0; j<PageSize; j++) {
+                            thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
                         }
                     }
-
                     pageTable[i].physicalPage = page_entry->physicalPage;
                     DEBUG('F', "Getting Out after successfull replacement from Fork!!\n");
                 }else{
@@ -195,14 +208,14 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace, int child_pid)
                 }
                 // SetUp Back pointers
                 phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
-                phy_to_pid[pageTable[i].physicalPage] = currentThread->GetPID();
+                phy_to_pid[pageTable[i].physicalPage] = child_pid;
                 // Copy the contents
                 unsigned localStartAddrParent = parentPageTable[i].physicalPage*PageSize;
                 unsigned localStartAddrChild = pageTable[i].physicalPage*PageSize;
                 for (int j=0; j<PageSize; j++) {
                     machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
                 }
-                DEBUG('F', "Allocating Memory Completed!!\n\n\n");
+                DEBUG('F', "Allocating Memory Completed!!\n\n");
             }else{
                 pageTable[i].physicalPage = -1;
             }
@@ -212,10 +225,11 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace, int child_pid)
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
-        pageTable[i].readOnly = parentPageTable[i].readOnly;  	// if the code segment was entirely on
-                                        			// a separate page, we could set its
-                                        			// pages to be read-only
-        pageTable[i].is_changed = FALSE;
+        pageTable[i].readOnly = parentPageTable[i].readOnly;
+        pageTable[i].is_changed = parentPageTable[i].is_changed;
+        for(int k=0;k<PageSize;k++){
+            threadArray[child_pid]->fallMem[i*PageSize+k]=currentThread->fallMem[i*PageSize+k];
+        }
     }
 }
 

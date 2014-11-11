@@ -83,6 +83,22 @@ static void ConvertIntToHex (unsigned v, Console *console)
    }
 }
 
+
+static void 
+SwapHeader (NoffHeader *noffH)
+{
+  noffH->noffMagic = WordToHost(noffH->noffMagic);
+  noffH->code.size = WordToHost(noffH->code.size);
+  noffH->code.virtualAddr = WordToHost(noffH->code.virtualAddr);
+  noffH->code.inFileAddr = WordToHost(noffH->code.inFileAddr);
+  noffH->initData.size = WordToHost(noffH->initData.size);
+  noffH->initData.virtualAddr = WordToHost(noffH->initData.virtualAddr);
+  noffH->initData.inFileAddr = WordToHost(noffH->initData.inFileAddr);
+  noffH->uninitData.size = WordToHost(noffH->uninitData.size);
+  noffH->uninitData.virtualAddr = WordToHost(noffH->uninitData.virtualAddr);
+  noffH->uninitData.inFileAddr = WordToHost(noffH->uninitData.inFileAddr);
+}
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -125,6 +141,7 @@ ExceptionHandler(ExceptionType which)
        // Copy the executable name into kernel space
        vaddr = machine->ReadRegister(4);
        bool flag = FALSE;
+       machine->ReadMem(vaddr, 1, &memval);
        while(flag != TRUE){
         flag = machine->ReadMem(vaddr, 1, &memval);
        }
@@ -133,6 +150,7 @@ ExceptionHandler(ExceptionType which)
           buffer[i] = (*(char*)&memval);
           i++;
           vaddr++;
+          machine->ReadMem(vaddr, 1, &memval);
           bool flag = FALSE;
           while(flag != TRUE){
             flag = machine->ReadMem(vaddr, 1, &memval);
@@ -170,7 +188,9 @@ ExceptionHandler(ExceptionType which)
        
        child = new Thread("Forked thread", GET_NICE_FROM_PARENT);
        child->fallMem = new char[currentThread->space->GetNumPages()*PageSize];
-       child->space = new AddrSpace (currentThread->space, child->GetPID());  // Duplicates the address space
+       child->space = new AddrSpace (currentThread->space, child->GetPID());
+       child->space->AddrSpaceInitialize(currentThread->space, child->GetPID());
+
        child->SaveUserState ();		     		      // Duplicate the register set
        child->ResetReturnValue ();			     // Sets the return register to zero
        child->StackAllocate (ForkStartFunction, 0);	// Make it ready for a later context switch
@@ -226,6 +246,7 @@ ExceptionHandler(ExceptionType which)
     else if ((which == SyscallException) && (type == syscall_PrintString)) {
        vaddr = machine->ReadRegister(4);
        bool flag = FALSE;
+       machine->ReadMem(vaddr, 1, &memval);
        while(flag != TRUE){
         flag = machine->ReadMem(vaddr, 1, &memval);
        }
@@ -234,6 +255,7 @@ ExceptionHandler(ExceptionType which)
           console->PutChar(*(char*)&memval);
           vaddr++;
           bool flag = FALSE;
+          machine->ReadMem(vaddr, 1, &memval);
           while(flag != TRUE){
             flag = machine->ReadMem(vaddr, 1, &memval);
           }
@@ -523,7 +545,94 @@ ExceptionHandler(ExceptionType which)
 
     }
     else if(which == PageFaultException){
-      currentThread->SortedInsertInWaitQueue(100+stats->totalTicks);
+      int virtAddr=machine->ReadRegister(BadVAddrReg);
+      unsigned int vpn = (unsigned) virtAddr / PageSize;
+      unsigned int offset = (unsigned) virtAddr % PageSize, pageFrame;
+      TranslationEntry *pageTable = currentThread->space->GetPageTable();
+      TranslationEntry *entry = &pageTable[vpn];
+
+      if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
+        DEBUG('T', "Memory Full!! Need Page Replacement\n");
+        int *phy_page_to_replace;
+        TranslationEntry *page_entry;
+        if (page_replacement_algo == RANDOM){
+          // DEBUG('T', "In if condition!!");
+          int tmp = Random()%(NumPhysPages);
+          phy_page_to_replace = &tmp;
+        }
+        DEBUG('T', "After if exit!! Page to replace : %d, PAge PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
+        page_entry = phy_to_pte[*phy_page_to_replace];
+        page_entry->valid = FALSE;
+        int other_pid = phy_to_pid[*phy_page_to_replace];
+        Thread *thread = threadArray[other_pid];
+        if(page_entry->dirty) {
+            page_entry->is_changed = TRUE;
+            for(int j=0; j<PageSize; j++) {
+              thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
+            }
+        }
+        entry->physicalPage = page_entry->physicalPage;
+        DEBUG('T', "Getting Out after successfull replacement!!");
+      }else{
+        int *phy_page_num = (int *)unallocated_pages->Remove();
+        if (phy_page_num != NULL){
+            entry->physicalPage = *phy_page_num;
+        }else{
+            entry->physicalPage = numPagesAllocated;
+            numPagesAllocated++;
+        }
+      }
+      phy_to_pte[entry->physicalPage] = entry;
+      phy_to_pid[entry->physicalPage] = currentThread->GetPID();
+
+      DEBUG('T', "Started copying memory \n");
+      // Memory Copy
+      bzero(&machine->mainMemory[entry->physicalPage*PageSize], PageSize);
+      if(entry->is_changed == TRUE){
+        DEBUG('T', "Copying memory from fallback Memory\n");
+        for(int j=0; j<PageSize;j++){
+          machine->mainMemory[entry->physicalPage*PageSize+j] = currentThread->fallMem[entry->virtualPage*PageSize+j];
+        }
+      }else{
+        OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
+        NoffHeader noffH;
+        executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+        if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost(noffH.noffMagic) == NOFFMAGIC))
+          SwapHeader(&noffH);
+
+        int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
+              + UserStackSize;  // we need to increase the size
+                          // to leave room for the stack
+        int new_numPages = divRoundUp(size, PageSize);
+        size =  new_numPages * PageSize; 
+
+        char *exec_cont = new char[size];
+        bzero(exec_cont,size);
+        // Sir Code
+        if (noffH.code.size > 0) {
+          vpn = noffH.code.virtualAddr/PageSize;
+          offset = noffH.code.virtualAddr%PageSize;
+          pageFrame = entry->physicalPage;
+          executable->ReadAt(&(exec_cont[vpn * PageSize + offset]),
+                  noffH.code.size, noffH.code.inFileAddr);
+        }
+        if (noffH.initData.size > 0) {
+            vpn = noffH.initData.virtualAddr/PageSize;
+            offset = noffH.initData.virtualAddr%PageSize;
+            pageFrame = entry->physicalPage;
+            executable->ReadAt(&(exec_cont[vpn * PageSize + offset]),
+                    noffH.initData.size, noffH.initData.inFileAddr);
+        }
+        for(int i=0;i<PageSize;i++){
+          machine->mainMemory[entry->physicalPage*PageSize+i]=exec_cont[entry->virtualPage*PageSize+i];
+        }
+        delete exec_cont;
+        delete executable;
+      }
+      DEBUG('T', "Page replacement finished with %d \n",numPagesAllocated);
+      entry->valid = TRUE;
+
+//      currentThread->SortedInsertInWaitQueue(10+stats->totalTicks);
       stats->numPageFaults++;
     }
     else {
