@@ -72,6 +72,22 @@ unsigned short
 ShortToMachine(unsigned short shortword) { return ShortToHost(shortword); }
 
 
+
+static void 
+SwapHeader (NoffHeader *noffH)
+{
+  noffH->noffMagic = WordToHost(noffH->noffMagic);
+  noffH->code.size = WordToHost(noffH->code.size);
+  noffH->code.virtualAddr = WordToHost(noffH->code.virtualAddr);
+  noffH->code.inFileAddr = WordToHost(noffH->code.inFileAddr);
+  noffH->initData.size = WordToHost(noffH->initData.size);
+  noffH->initData.virtualAddr = WordToHost(noffH->initData.virtualAddr);
+  noffH->initData.inFileAddr = WordToHost(noffH->initData.inFileAddr);
+  noffH->uninitData.size = WordToHost(noffH->uninitData.size);
+  noffH->uninitData.virtualAddr = WordToHost(noffH->uninitData.virtualAddr);
+  noffH->uninitData.inFileAddr = WordToHost(noffH->uninitData.inFileAddr);
+}
+
 //----------------------------------------------------------------------
 // Machine::ReadMem
 //      Read "size" (1, 2, or 4) bytes of virtual memory at "addr" into 
@@ -272,23 +288,43 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
             machine->mainMemory[entry->physicalPage*PageSize+j] = currentThread->fallMem[entry->virtualPage*PageSize+j];
           }
         }else{
-          DEBUG('T', "Copying memory from executable\n");
           OpenFile *executable = fileSystem->Open(currentThread->space->exec_filename);
-          NoffHeader noffH = currentThread->space->noffH;
-          int index_size = entry->virtualPage*PageSize;
-          if(noffH.code.size>index_size+PageSize){
-            DEBUG('Z', "\n Copying Code %d \n\n", index_size);
-            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]), PageSize, noffH.code.inFileAddr + vpn*PageSize);
-          }else if(noffH.code.size>index_size && noffH.code.size<index_size+PageSize){
-            DEBUG('Z', "\n Copying Code + Data %d \n\n", index_size);
-            int my_offset = noffH.code.size-index_size;
-            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]), my_offset, noffH.code.inFileAddr + vpn*PageSize);
-            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize+my_offset]),PageSize-my_offset, noffH.initData.inFileAddr);
-          }else if(noffH.initData.size>0){
-            DEBUG('Z', "\n Copying Data %d \n\n", index_size);
-            int my_offset = index_size-noffH.code.size;
-            executable->ReadAt(&(machine->mainMemory[entry->physicalPage * PageSize]),noffH.initData.size, noffH.initData.inFileAddr+my_offset);
+          NoffHeader noffH;
+          executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+          if ((noffH.noffMagic != NOFFMAGIC) && (WordToHost(noffH.noffMagic) == NOFFMAGIC))
+            SwapHeader(&noffH);
+
+          int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
+                + UserStackSize;  // we need to increase the size
+                            // to leave room for the stack
+          int new_numPages = divRoundUp(size, PageSize);
+          size =  new_numPages * PageSize; 
+
+          char *exec_cont = new char[size];
+          bzero(exec_cont,size);
+          // Sir Code
+          if (noffH.code.size > 0) {
+            DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+                    noffH.code.virtualAddr, noffH.code.size);
+            vpn = noffH.code.virtualAddr/PageSize;
+            offset = noffH.code.virtualAddr%PageSize;
+            pageFrame = entry->physicalPage;
+            executable->ReadAt(&(exec_cont[vpn * PageSize + offset]),
+                    noffH.code.size, noffH.code.inFileAddr);
           }
+          if (noffH.initData.size > 0) {
+              DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
+                      noffH.initData.virtualAddr, noffH.initData.size);
+              vpn = noffH.initData.virtualAddr/PageSize;
+              offset = noffH.initData.virtualAddr%PageSize;
+              pageFrame = entry->physicalPage;
+              executable->ReadAt(&(exec_cont[vpn * PageSize + offset]),
+                      noffH.initData.size, noffH.initData.inFileAddr);
+          }
+          for(int i=0;i<PageSize;i++){
+            machine->mainMemory[entry->physicalPage*PageSize+i]=exec_cont[entry->virtualPage*PageSize+i];
+          }
+          delete exec_cont;
           delete executable;
         }
         DEBUG('T', "Page replacement finished with %d \n",numPagesAllocated);
