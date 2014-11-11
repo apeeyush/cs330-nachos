@@ -217,7 +217,6 @@ AddrSpace::AddrSpace(AddrSpace *parentSpace, int child_pid)
                                         			// pages to be read-only
         pageTable[i].is_changed = FALSE;
     }
-    currentThread->fallMem = new char[size];
 }
 
 //----------------------------------------------------------------------
