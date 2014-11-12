@@ -546,12 +546,11 @@ ExceptionHandler(ExceptionType which)
 
       int page_to_replace = currentThread->space->FindNextPage(-1);
       entry->physicalPage = page_to_replace;
-
-      phy_to_pte[entry->physicalPage] = entry;
       if(page_replacement_algo == FIFO){
         fifo->add_at_beginning(entry->physicalPage);
       }
       
+      phy_to_pte[entry->physicalPage] = entry;
       phy_to_pid[entry->physicalPage] = currentThread->GetPID();
 
       DEBUG('T', "Started copying memory \n");

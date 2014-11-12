@@ -145,6 +145,9 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
             if(parentPageTable[i].valid == TRUE){
                 int page_to_replace = FindNextPage(parentPageTable[i].physicalPage);
                 pageTable[i].physicalPage = page_to_replace ;
+                if(page_replacement_algo == FIFO){
+                    fifo->add_at_beginning(pageTable[i].physicalPage);
+                }
                 // SetUp Back pointers
                 phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
                 phy_to_pid[pageTable[i].physicalPage] = child_pid;
@@ -282,7 +285,12 @@ AddrSpace::PageReplacement(int parentPhyPage){
         }
         phy_page_to_replace = &tmp;
     }else if(page_replacement_algo == FIFO){
-
+        int tmp = fifo->delete_from_end();
+        while(parentPhyPage == tmp || phy_to_pte[tmp]->is_shared){
+            fifo->add_at_beginning(tmp);
+            tmp = fifo->delete_from_end();
+        }
+        phy_page_to_replace = &tmp;
     }
     
     DEBUG('L', "Page to replace : %d, Page PID : %d \n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
