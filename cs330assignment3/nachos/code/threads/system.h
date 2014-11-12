@@ -85,6 +85,7 @@ extern TranslationEntry *phy_to_pte[];
 
 extern int phy_to_pid[];
 
+
 class TimeSortedWaitQueue {		// Needed to implement SC_Sleep
 private:
    Thread *t;				// Thread pointer of the sleeping thread
@@ -100,6 +101,31 @@ public:
    TimeSortedWaitQueue *GetNext(void) { return next; }
    void SetNext (TimeSortedWaitQueue *n) { next = n; }
 };
+
+struct node
+{
+    int value;
+    struct node *next;
+    struct node *prev;
+};
+
+class dllist
+{
+    public:
+        dllist();
+        ~dllist();
+        void add_at_beginning(int value);
+        void delete_element(int value);
+        void search_element(int value);
+        void display_dlist();
+        void count();
+        int delete_from_end();
+        node* head;
+        node* tail;
+};
+
+
+extern dllist *fifo;
 
 extern TimeSortedWaitQueue *sleepQueueHead;
 

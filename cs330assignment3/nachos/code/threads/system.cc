@@ -44,7 +44,9 @@ Condition *cond_list[MaxCondCount];
 
 List *unallocated_pages;
 
-int page_replacement_algo;
+int page_replacement_algo = 1;
+
+dllist* fifo ;
 
 TranslationEntry *phy_to_pte[NumPhysPages];
 int phy_to_pid[NumPhysPages];
@@ -141,6 +143,9 @@ Initialize(int argc, char **argv)
     for(int i=0; i<MaxCondCount;i++){
       id_key_cond_map[i] = -1;
     }
+
+    fifo = new dllist();
+
     unallocated_pages = new List();
 
     initializedConsoleSemaphores = false;
@@ -286,3 +291,75 @@ void
 DeleteElementFromList(){
   
 }
+
+dllist::dllist(){
+    head = NULL;
+    tail = NULL;
+}
+
+dllist::~dllist(){
+}
+
+void dllist::add_at_beginning(int value)
+{
+    struct node *temp;
+    temp = new(struct node);
+    temp->value = value;
+    temp->prev = NULL;
+    temp->next = head;
+    if (head == NULL)
+    {
+        head = temp ;
+        tail = temp ;
+    }
+    else{               
+        head->prev = temp;
+        head = temp;
+    }
+}
+ 
+void dllist::delete_element(int value)
+{
+    struct node *tmp, *q;
+    tmp = head ;
+    while(tmp && tmp->value != value){
+        tmp = tmp->next ;
+    }
+    if(!tmp){
+        return;
+    }
+    else{
+        if(tmp!= head){
+            tmp->prev->next = tmp->next;
+            if(tmp == tail) tail = tmp->prev;
+            else tmp->next->prev = tmp->prev;
+            delete tmp;
+        }
+        else{
+            head=tmp->next;
+            if(tail== tmp) tail = tmp->prev;
+            else tmp->next->prev = NULL;
+            delete tmp;
+        }
+    }
+}
+
+int dllist::delete_from_end(){
+    if(head == NULL || tail == NULL)
+    {
+        return -1;
+    }else{
+        int val = tail->value;
+        struct node* tmp = tail;
+        if(tmp->prev!= NULL){
+            tmp->prev->next = NULL ;
+            tail = tmp->prev;
+        }
+        else{
+            head = NULL;
+            tail = NULL ;
+        }
+        return val;
+    }
+}
+ 

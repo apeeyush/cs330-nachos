@@ -137,7 +137,11 @@ main(int argc, char **argv)
             argCount = 2;
         }
         else if (!strcmp(*argv, "-R")){     // Specify Page Replacement Algo
-
+          ASSERT (argc > 1);
+          argCount = 2 ;
+          page_replacement_algo = atoi((*(argv + 1)));
+          DEBUG('R', "Algo : %d", page_replacement_algo);
+          ASSERT( page_replacement_algo >= 1 && page_replacement_algo <=4);
         }
 #endif // USER_PROGRAM
 #ifdef FILESYS

@@ -12,25 +12,25 @@ int
 main()
 {
     int i, k, sum=0;
-    
+    sys_PrintString("1");
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<2*SIZE1/3; i++) sum += array1[i];
        for (i=0; i<SIZE1/3; i++) sum += array1[i];
        for (i=2*SIZE1/3; i<SIZE1; i++) sum += array1[i];
     }
-
+    sys_PrintString("2\n");
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<2*SIZE2/3; i++) sum += array2[i];
        for (i=0; i<SIZE2/3; i++) sum += array2[i];
        for (i=2*SIZE2/3; i<SIZE2; i++) sum += array2[i];
     }
-
+    sys_PrintString("3\n");
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<2*SIZE3/3; i++) sum += array3[i];
        for (i=0; i<SIZE3/3; i++) sum += array3[i];
        for (i=2*SIZE3/3; i<SIZE3; i++) sum += array3[i];
     }
-
+    sys_PrintString("4\n");
     for (k=0; k<OUTER_BOUND; k++) {
        for (i=0; i<2*SIZE4/3; i++) sum += array4[i];
        for (i=0; i<SIZE4/3; i++) sum += array4[i];

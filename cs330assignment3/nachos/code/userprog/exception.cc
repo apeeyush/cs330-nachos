@@ -557,29 +557,7 @@ ExceptionHandler(ExceptionType which)
       TranslationEntry *entry = &pageTable[vpn];
 
       if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
-        DEBUG('P', "Memory Full!! Need Page Replacement\n");
-        int *phy_page_to_replace;
-        TranslationEntry *page_entry;
-        if (page_replacement_algo == RANDOM){
-          int tmp = Random()%(NumPhysPages);
-          while(phy_to_pte[tmp]->is_shared == TRUE){
-            tmp = Random()%(NumPhysPages);
-          }
-          phy_page_to_replace = &tmp;
-        }
-        DEBUG('T', "After if exit!! Page to replace : %d, PAge PID : %d \n\n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
-        page_entry = phy_to_pte[*phy_page_to_replace];
-        page_entry->valid = FALSE;
-        int other_pid = phy_to_pid[*phy_page_to_replace];
-        Thread *thread = threadArray[other_pid];
-        if(page_entry->dirty) {
-            page_entry->is_changed = TRUE;
-            for(int j=0; j<PageSize; j++) {
-              thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
-            }
-        }
-        entry->physicalPage = page_entry->physicalPage;
-        DEBUG('T', "Getting Out after successfull replacement!!");
+        currentThread->space->PageReplacement(entry, -1 );
       }else{
         int *phy_page_num = (int *)unallocated_pages->Remove();
         if (phy_page_num != NULL){
@@ -590,6 +568,10 @@ ExceptionHandler(ExceptionType which)
         }
       }
       phy_to_pte[entry->physicalPage] = entry;
+      if(page_replacement_algo == FIFO){
+        fifo->add_at_beginning(entry->physicalPage);
+      }
+      
       phy_to_pid[entry->physicalPage] = currentThread->GetPID();
 
       DEBUG('T', "Started copying memory \n");
