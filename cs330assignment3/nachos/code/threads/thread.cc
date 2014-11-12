@@ -273,6 +273,12 @@ Thread::Exit (bool terminateSim, int exitcode)
       if(old_table[i].valid && !old_table[i].is_shared){
         int *temp = new int(old_table[i].physicalPage);
         unallocated_pages->Append((void *)temp);
+        if(page_replacement_algo == FIFO){
+          DEBUG('p', "Exiting thread Deleting element from fifo.\n");
+          fifo->delete_element(old_table[i].physicalPage);
+        }else if(page_replacement_algo == LRU){
+          lru->delete_element(old_table[i].physicalPage);
+        }
         phy_to_pte[old_table[i].physicalPage] = NULL;
         phy_to_pid[old_table[i].physicalPage] = -1;
       }

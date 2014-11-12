@@ -269,6 +269,8 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
       DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
       return BusErrorException;
     }
+    lru->delete_element(entry->physicalPage);
+    lru->add_at_beginning(entry->physicalPage);
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
       entry->dirty = TRUE;

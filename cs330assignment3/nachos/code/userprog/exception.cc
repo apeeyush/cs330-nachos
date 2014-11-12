@@ -548,6 +548,8 @@ ExceptionHandler(ExceptionType which)
       entry->physicalPage = page_to_replace;
       if(page_replacement_algo == FIFO){
         fifo->add_at_beginning(entry->physicalPage);
+      }else if(page_replacement_algo == LRU){
+        lru->add_at_beginning(entry->physicalPage);
       }
       
       phy_to_pte[entry->physicalPage] = entry;
@@ -601,6 +603,7 @@ ExceptionHandler(ExceptionType which)
       entry->valid = TRUE;
       DEBUG('P', "Finishing PageFaultException...\n");
       stats->numPageFaults++;
+    //  currentThread->SortedInsertInWaitQueue (1000+stats->totalTicks);
     }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);

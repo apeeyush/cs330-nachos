@@ -126,6 +126,7 @@ class dllist
 
 
 extern dllist *fifo;
+extern dllist *lru;
 
 extern TimeSortedWaitQueue *sleepQueueHead;
 

@@ -10,17 +10,17 @@
 //  *	be careful to allocate a big enough stack to hold the automatics!
  
 
-// #include "syscall.h"
+#include "syscall.h"
 
-// int
-// main()
-// {
-//     sys_PrintString("hello world\n");
-//     sys_PrintString("Executed ");
-//     sys_PrintInt(sys_GetNumInstr());
-//     sys_PrintString(" instructions.\n");
-//     return 0;
-// }
+int
+main()
+{
+    sys_PrintString("hello world\n");
+    sys_PrintString("Executed ");
+    sys_PrintInt(sys_GetNumInstr());
+    sys_PrintString(" instructions.\n");
+    return 0;
+}
 
 // #include "syscall.h"
 
@@ -67,36 +67,36 @@
 // }
 
 
-#include "syscall.h"
-#include "synchop.h"
+// #include "syscall.h"
+// #include "synchop.h"
 
-int main()
-{
-    int x;
-    int sleep_start, sleep_end;
-    int *array = (int*)sys_ShmAllocate(2*sizeof(int));
-    array[0] = 5;
-    array[1] = 0;
-    int a = 1;
-    x = sys_Fork();
-    sys_PrintString("Start...");
-    sys_PrintString("Start...");
-    if (x == 0) {
-    	array[0] = 1;
-    	sys_PrintInt(array[1]);
-    	sys_PrintChar('\n');
-    	sys_PrintString("Finish Chils");
-    }
-    else {
-    	array[1] = 1;
-    	sys_PrintInt(array[0]);
-        sys_PrintChar('\n');
-        sys_Join(x);
-        sys_PrintString("Finish Parent");
-    }
-    sys_PrintString("Finish");
-    return 0;
-}
+// int main()
+// {
+//     int x;
+//     int sleep_start, sleep_end;
+//     int *array = (int*)sys_ShmAllocate(2*sizeof(int));
+//     array[0] = 5;
+//     array[1] = 0;
+//     int a = 1;
+//     x = sys_Fork();
+//     sys_PrintString("Start...");
+//     sys_PrintString("Start...");
+//     if (x == 0) {
+//     	array[0] = 1;
+//     	sys_PrintInt(array[1]);
+//     	sys_PrintChar('\n');
+//     	sys_PrintString("Finish Chils");
+//     }
+//     else {
+//     	array[1] = 1;
+//     	sys_PrintInt(array[0]);
+//         sys_PrintChar('\n');
+//         sys_Join(x);
+//         sys_PrintString("Finish Parent");
+//     }
+//     sys_PrintString("Finish");
+//     return 0;
+// }
 
 
 // #include "syscall.h"

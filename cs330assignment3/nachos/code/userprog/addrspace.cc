@@ -143,10 +143,17 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
         pageTable[i].is_shared = parentPageTable[i].is_shared;
         if(parentPageTable[i].is_shared == FALSE){
             if(parentPageTable[i].valid == TRUE){
+                if(page_replacement_algo == LRU){
+                    lru->delete_element(parentPageTable[i].physicalPage);
+                    lru->add_at_beginning(parentPageTable[i].physicalPage);
+                }  
                 int page_to_replace = FindNextPage(parentPageTable[i].physicalPage);
                 pageTable[i].physicalPage = page_to_replace ;
                 if(page_replacement_algo == FIFO){
                     fifo->add_at_beginning(pageTable[i].physicalPage);
+                }else if(page_replacement_algo == LRU){
+                    lru->delete_element(pageTable[i].physicalPage);
+                    lru->add_at_beginning(pageTable[i].physicalPage);                    
                 }
                 // SetUp Back pointers
                 phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
@@ -291,8 +298,26 @@ AddrSpace::PageReplacement(int parentPhyPage){
             tmp = fifo->delete_from_end();
         }
         phy_page_to_replace = &tmp;
+        // int tmp = fifo->delete_from_end();
+        // if(tmp == parentPhyPage){
+        //     int to_replace = fifo->delete_from_end();
+        //     phy_page_to_replace = &to_replace;
+        //     fifo->add_to_end(tmp);
+        // }else{
+        //     while( phy_to_pte[tmp]->is_shared){
+        //         fifo->add_at_beginning(tmp);
+        //         tmp = fifo->delete_from_end();
+        //     }
+        //     phy_page_to_replace = &tmp;
+        // }        
+    }else if(page_replacement_algo == LRU){
+        int tmp = lru->delete_from_end();
+        while(parentPhyPage == tmp || phy_to_pte[tmp]->is_shared){
+            lru->add_at_beginning(tmp);
+        tmp = lru->delete_from_end();
+        }
+        phy_page_to_replace = &tmp;
     }
-    
     DEBUG('L', "Page to replace : %d, Page PID : %d \n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
     page_entry = phy_to_pte[*phy_page_to_replace];
     page_entry->valid = FALSE;

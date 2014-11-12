@@ -47,7 +47,9 @@ List *unallocated_pages;
 int page_replacement_algo = 1;
 
 dllist* fifo ;
+dllist* lru ;
 
+int lru_clock[NumPhysPages];
 TranslationEntry *phy_to_pte[NumPhysPages];
 int phy_to_pid[NumPhysPages];
 
@@ -143,8 +145,8 @@ Initialize(int argc, char **argv)
     for(int i=0; i<MaxCondCount;i++){
       id_key_cond_map[i] = -1;
     }
-
     fifo = new dllist();
+    lru = new dllist();
 
     unallocated_pages = new List();
 
