@@ -362,6 +362,7 @@ ExceptionHandler(ExceptionType which)
         phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
        }
        for(int i =old_num_pages; i<num_pages; i++){
+        DEBUG('L',"LRU clock...............\n");
         newPageTable[i].virtualPage = i;
         newPageTable[i].physicalPage = currentThread->space->FindNextPage(-1);
         bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
@@ -373,6 +374,11 @@ ExceptionHandler(ExceptionType which)
         newPageTable[i].is_changed = FALSE;
         phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
         phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
+        lru_clock[newPageTable[i].physicalPage] = -1;
+        DEBUG('L',"LRU clock = %d\t%d\n\n", i,newPageTable[i].physicalPage);
+       }
+       for(int k=0;k<NumPhysPages;k++){
+            DEBUG('L',"hey%d ",lru_clock[k]);
        }
        curr_space->SetNumPages(num_pages);
        curr_space->SetPageTable(newPageTable);
@@ -550,6 +556,11 @@ ExceptionHandler(ExceptionType which)
         fifo->add_at_beginning(entry->physicalPage);
       }else if(page_replacement_algo == LRU){
         lru->add_at_beginning(entry->physicalPage);
+      }else if(page_replacement_algo == LRUCLOCK){
+        if(lru_clock[entry->physicalPage]==-1){
+                        DEBUG('B',"hello exception \n ");
+                    }
+        lru_clock[entry->physicalPage] = 1;
       }
       
       phy_to_pte[entry->physicalPage] = entry;
@@ -603,7 +614,8 @@ ExceptionHandler(ExceptionType which)
       entry->valid = TRUE;
       DEBUG('P', "Finishing PageFaultException...\n");
       stats->numPageFaults++;
-    //  currentThread->SortedInsertInWaitQueue (1000+stats->totalTicks);
+      if(!entry->is_shared)
+        currentThread->SortedInsertInWaitQueue (1000+stats->totalTicks);
     }
     else {
 	printf("Unexpected user mode exception %d %d\n", which, type);

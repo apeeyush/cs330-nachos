@@ -78,22 +78,23 @@ main()
 //     array[0] = 5;
 //     array[1] = 0;
 //     int a = 1;
+//     sys_PrintString("Start...");
 //     x = sys_Fork();
-//     sys_PrintString("Start...");
-//     sys_PrintString("Start...");
-//     if (x == 0) {
-//     	array[0] = 1;
-//     	sys_PrintInt(array[1]);
-//     	sys_PrintChar('\n');
-//     	sys_PrintString("Finish Chils");
-//     }
-//     else {
-//     	array[1] = 1;
-//     	sys_PrintInt(array[0]);
-//         sys_PrintChar('\n');
-//         sys_Join(x);
-//         sys_PrintString("Finish Parent");
-//     }
+// //    sys_PrintString("Start...");
+// //    sys_PrintString("Start...");
+//     // if (x == 0) {
+//     // 	array[0] = 1;
+//     // 	sys_PrintInt(array[1]);
+//     // 	sys_PrintChar('\n');
+//     // 	sys_PrintString("Finish Chils");
+//     // }
+//     // else {
+//     // 	array[1] = 1;
+//     // 	sys_PrintInt(array[0]);
+//     //     sys_PrintChar('\n');
+//     //     sys_Join(x);
+//     //     sys_PrintString("Finish Parent");
+//     // }
 //     sys_PrintString("Finish");
 //     return 0;
 // }

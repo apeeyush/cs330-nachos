@@ -76,6 +76,8 @@ ExecProcess(char *filename)
           fifo->delete_element(old_table[i].physicalPage);
         }else if(page_replacement_algo == LRU){
           lru->delete_element(old_table[i].physicalPage);
+        }else if(page_replacement_algo == LRUCLOCK){
+          lru_clock[old_table[i].physicalPage] = -2;
         }
         phy_to_pte[old_table[i].physicalPage] = NULL;
         phy_to_pid[old_table[i].physicalPage] = -1;

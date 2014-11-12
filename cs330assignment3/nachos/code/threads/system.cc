@@ -50,6 +50,8 @@ dllist* fifo ;
 dllist* lru ;
 
 int lru_clock[NumPhysPages];
+int lru_clockhead;
+
 TranslationEntry *phy_to_pte[NumPhysPages];
 int phy_to_pid[NumPhysPages];
 
@@ -147,6 +149,10 @@ Initialize(int argc, char **argv)
     }
     fifo = new dllist();
     lru = new dllist();
+    for(int i=0; i<NumPhysPages; i++){
+        lru_clock[i] = -2;
+    }
+    lru_clockhead = 0 ;
 
     unallocated_pages = new List();
 

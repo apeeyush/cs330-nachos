@@ -154,6 +154,15 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
                 }else if(page_replacement_algo == LRU){
                     lru->delete_element(pageTable[i].physicalPage);
                     lru->add_at_beginning(pageTable[i].physicalPage);                    
+                }else if(page_replacement_algo == LRUCLOCK){
+                    // if(lru_clock[pageTable[i].physicalPage]==-1){
+                    //     DEBUG('B',"hello fork child \n ");
+                    // }
+                    // if(lru_clock[parentPageTable[i].physicalPage]==-1){
+                    //     DEBUG('B',"hello fork parent \n ");
+                    // }
+                    lru_clock[pageTable[i].physicalPage] = 1;
+                    lru_clock[parentPageTable[i].physicalPage] = 1;
                 }
                 // SetUp Back pointers
                 phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
@@ -169,6 +178,7 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
                 pageTable[i].physicalPage = -1;
             }
         }else{
+            lru_clock[parentPageTable[i].physicalPage] = -1;
             pageTable[i].physicalPage = parentPageTable[i].physicalPage;
         }
         pageTable[i].valid = parentPageTable[i].valid;
@@ -317,6 +327,49 @@ AddrSpace::PageReplacement(int parentPhyPage){
         tmp = lru->delete_from_end();
         }
         phy_page_to_replace = &tmp;
+    }else if(page_replacement_algo == LRUCLOCK){
+        int i = lru_clockhead;
+        int flag=0;
+        // for(int k=0;k<NumPhysPages;k++){
+        //     DEBUG('L',"%d ",lru_clock[k]);
+        // }
+        // DEBUG('L',"\n");
+        while(lru_clock[i]!=0 || parentPhyPage == i){
+            if(lru_clock[i]==1){
+                lru_clock[i] = 0;
+            }
+            i = (i+1)%NumPhysPages;
+        }
+        if(lru_clock[i]==-1){
+                        DEBUG('B',"hello ");
+        }
+        phy_page_to_replace = &i;
+        lru_clockhead = (i+1)%NumPhysPages;
+        for(int k=0;k<NumPhysPages;k++){
+            DEBUG('L',"%d ",lru_clock[k]);
+        }
+        // DEBUG('L',"\n");
+        // while(lru_clock[i]!=0){     //(parentPhyPage == i || phy_to_pte[i]->is_shared)
+        //     if(lru_clock[i]==1){
+        //         lru_clock[i] = 0;
+        //     }
+        //     i = (i+1)%NumPhysPages;
+        // }
+        // while(flag==0)
+        // {
+        //         DEBUG('M', "LRUCLOCK while loop");
+        //     if(lru_clock[i]==1) lru_clock[i]=0;
+        //     else if(lru_clock[i]==0)
+        //     {
+        //         if(!(parentPhyPage == i) || !(phy_to_pte[i]->is_shared))
+        //         {
+        //             flag=1;
+        //             lru_clockhead=(i+1)%NumPhysPages;
+        //             phy_page_to_replace = &i;
+        //         }
+        //     }
+        //     i = (i+1)%NumPhysPages;
+        // }
     }
     DEBUG('L', "Page to replace : %d, Page PID : %d \n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
     page_entry = phy_to_pte[*phy_page_to_replace];

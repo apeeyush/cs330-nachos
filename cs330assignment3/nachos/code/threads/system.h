@@ -84,7 +84,8 @@ extern int page_replacement_algo;
 extern TranslationEntry *phy_to_pte[];
 
 extern int phy_to_pid[];
-
+extern int lru_clock[];
+extern int lru_clockhead;
 
 class TimeSortedWaitQueue {		// Needed to implement SC_Sleep
 private:
