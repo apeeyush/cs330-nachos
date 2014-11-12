@@ -370,4 +370,16 @@ int dllist::delete_from_end(){
         return val;
     }
 }
- 
+void dllist::add_at_end(int element){
+    if(head == NULL){
+        add_at_beginning(element);
+    }else{
+        struct node *temp;
+        temp = new(struct node);
+        temp->value = element;
+        temp->next = NULL;
+        tail->next = temp ;
+        temp->prev = tail;
+        tail = temp;
+    }
+}

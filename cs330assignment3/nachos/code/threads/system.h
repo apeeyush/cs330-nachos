@@ -116,6 +116,7 @@ class dllist
         dllist();
         ~dllist();
         void add_at_beginning(int value);
+        void add_at_end(int value);
         void delete_element(int value);
         void search_element(int value);
         void display_dlist();

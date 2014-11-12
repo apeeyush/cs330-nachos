@@ -302,24 +302,24 @@ AddrSpace::PageReplacement(int parentPhyPage){
         }
         phy_page_to_replace = &tmp;
     }else if(page_replacement_algo == FIFO){
-        int tmp = fifo->delete_from_end();
-        while(parentPhyPage == tmp || phy_to_pte[tmp]->is_shared){
-            fifo->add_at_beginning(tmp);
-            tmp = fifo->delete_from_end();
-        }
-        phy_page_to_replace = &tmp;
         // int tmp = fifo->delete_from_end();
-        // if(tmp == parentPhyPage){
-        //     int to_replace = fifo->delete_from_end();
-        //     phy_page_to_replace = &to_replace;
-        //     fifo->add_to_end(tmp);
-        // }else{
-        //     while( phy_to_pte[tmp]->is_shared){
-        //         fifo->add_at_beginning(tmp);
-        //         tmp = fifo->delete_from_end();
-        //     }
-        //     phy_page_to_replace = &tmp;
-        // }        
+        // while(parentPhyPage == tmp || phy_to_pte[tmp]->is_shared){
+        //     fifo->add_at_beginning(tmp);
+        //     tmp = fifo->delete_from_end();
+        // }
+        // phy_page_to_replace = &tmp;
+        int tmp = fifo->delete_from_end();
+        if(tmp == parentPhyPage){
+            int to_replace = fifo->delete_from_end();
+            phy_page_to_replace = &to_replace;
+            fifo->add_at_end(tmp);
+        }else{
+            while( phy_to_pte[tmp]->is_shared){
+                fifo->add_at_beginning(tmp);
+                tmp = fifo->delete_from_end();
+            }
+            phy_page_to_replace = &tmp;
+     }        
     }else if(page_replacement_algo == LRU){
         int tmp = lru->delete_from_end();
         while(parentPhyPage == tmp || phy_to_pte[tmp]->is_shared){
