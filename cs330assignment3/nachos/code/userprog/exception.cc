@@ -363,20 +363,8 @@ ExceptionHandler(ExceptionType which)
        }
        for(int i =old_num_pages; i<num_pages; i++){
         newPageTable[i].virtualPage = i;
-
-        if(numPagesAllocated >= NumPhysPages){
-          DEBUG('t',"Memory Full\n\n");
-        }
-
-        int *phy_page_num = (int *)unallocated_pages->Remove();
-        if (phy_page_num != NULL){
-            newPageTable[i].physicalPage = *phy_page_num;
-            bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
-        }else{
-            newPageTable[i].physicalPage = numPagesAllocated;
-            numPagesAllocated++;
-            bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
-        }
+        newPageTable[i].physicalPage = currentThread->space->FindNextPage(-1);
+        bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
         newPageTable[i].valid = TRUE;
         newPageTable[i].use = FALSE;
         newPageTable[i].dirty = FALSE;
@@ -556,17 +544,9 @@ ExceptionHandler(ExceptionType which)
       TranslationEntry *pageTable = currentThread->space->GetPageTable();
       TranslationEntry *entry = &pageTable[vpn];
 
-      if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
-        currentThread->space->PageReplacement(entry, -1 );
-      }else{
-        int *phy_page_num = (int *)unallocated_pages->Remove();
-        if (phy_page_num != NULL){
-            entry->physicalPage = *phy_page_num;
-        }else{
-            entry->physicalPage = numPagesAllocated;
-            numPagesAllocated++;
-        }
-      }
+      int page_to_replace = currentThread->space->FindNextPage(-1);
+      entry->physicalPage = page_to_replace;
+
       phy_to_pte[entry->physicalPage] = entry;
       if(page_replacement_algo == FIFO){
         fifo->add_at_beginning(entry->physicalPage);

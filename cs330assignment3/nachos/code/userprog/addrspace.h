@@ -39,7 +39,8 @@ class AddrSpace {
     unsigned GetNumPages();
     void SetNumPages(int new_num_pages); 
 
-    void PageReplacement(TranslationEntry* curr_pageTable, int parent_phyPageTable);
+    int PageReplacement(int parentPhyPage);
+    int FindNextPage(int parentPhyPage);
     TranslationEntry* GetPageTable();
     void SetPageTable(TranslationEntry* new_page_table);
     char exec_filename[100];

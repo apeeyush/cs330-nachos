@@ -143,43 +143,8 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
         pageTable[i].is_shared = parentPageTable[i].is_shared;
         if(parentPageTable[i].is_shared == FALSE){
             if(parentPageTable[i].valid == TRUE){
-                DEBUG('F', "Allocating new page for child.. numPagesAllocated = %d \n", numPagesAllocated);
-                if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
-                    // DEBUG('F', "Memory Full in Fork!! Need Page Replacement\n");
-                    // int *phy_page_to_replace;
-                    // TranslationEntry *page_entry;
-                    // if (page_replacement_algo == RANDOM){
-                    //     int tmp = Random()%NumPhysPages;
-                    //     while(parentPageTable[i].physicalPage != tmp){
-                    //         tmp = Random()%NumPhysPages;
-                    //     }
-                    //     phy_page_to_replace = &tmp;
-                    // }
-                    // DEBUG('L', "Page to replace : %d, Page PID : %d \n", *phy_page_to_replace, phy_to_pid[*phy_page_to_replace]);
-                    // page_entry = phy_to_pte[*phy_page_to_replace];
-                    // page_entry->valid = FALSE;
-                    // int other_pid = phy_to_pid[*phy_page_to_replace];
-                    // Thread *thread = threadArray[other_pid];
-                    // if(page_entry->dirty) {
-                    //     DEBUG('F', "Copying parent data in backup...");
-                    //     page_entry->is_changed = TRUE;
-                    //     for(int j=0; j<PageSize; j++) {
-                    //         thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
-                    //     }
-                    // }
-                    // pageTable[i].physicalPage = page_entry->physicalPage;
-                    // DEBUG('F', "Getting Out after successfull replacement from Fork!!\n");
-                    PageReplacement(&pageTable[i], parentPageTable[i].physicalPage );
-                }else{
-                    DEBUG('F', "Allocating Memory!!\n");
-                    int *phy_page_num = (int *)unallocated_pages->Remove();
-                    if (phy_page_num != NULL){
-                        pageTable[i].physicalPage = *phy_page_num;
-                    }else{
-                        pageTable[i].physicalPage = numPagesAllocated;
-                        numPagesAllocated++;
-                    }
-                }
+                int page_to_replace = FindNextPage(parentPageTable[i].physicalPage);
+                pageTable[i].physicalPage = page_to_replace ;
                 // SetUp Back pointers
                 phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
                 phy_to_pid[pageTable[i].physicalPage] = child_pid;
@@ -305,14 +270,14 @@ AddrSpace::SetPageTable(TranslationEntry* new_page_table)
     pageTable=new_page_table;
 }
 
-void
-AddrSpace::PageReplacement(TranslationEntry* curr_pageTable, int parent_phyPageTable){
+int
+AddrSpace::PageReplacement(int parentPhyPage){
     DEBUG('F', "Memory Full!! Need Page Replacement\n");
     int *phy_page_to_replace;
     TranslationEntry *page_entry;
     if (page_replacement_algo == RANDOM){
         int tmp = Random()%NumPhysPages;
-        while(parent_phyPageTable == tmp || phy_to_pte[tmp]->is_shared){
+        while(parentPhyPage == tmp || phy_to_pte[tmp]->is_shared){
             tmp = Random()%NumPhysPages;
         }
         phy_page_to_replace = &tmp;
@@ -332,6 +297,22 @@ AddrSpace::PageReplacement(TranslationEntry* curr_pageTable, int parent_phyPageT
             thread->fallMem[page_entry->virtualPage*PageSize+j] = machine->mainMemory[page_entry->physicalPage*PageSize+j];
         }
     }
-    curr_pageTable->physicalPage = page_entry->physicalPage;
+    return page_entry->physicalPage;
     DEBUG('F', "Getting Out after successfull replacement from Fork!!\n");
+}
+
+int
+AddrSpace::FindNextPage(int parentPhyPage){
+    if(numPagesAllocated == NumPhysPages && unallocated_pages->IsEmpty() ){
+        int page_to_replace = PageReplacement(parentPhyPage);
+        return page_to_replace;
+    }else{
+        int *phy_page_num = (int *)unallocated_pages->Remove();
+        if (phy_page_num != NULL){
+            return *phy_page_num;
+        }else{
+            numPagesAllocated++;
+            return numPagesAllocated-1;
+        }
+    }       
 }
