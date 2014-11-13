@@ -558,12 +558,8 @@ ExceptionHandler(ExceptionType which)
       }else if(page_replacement_algo == LRU){
         lru->add_at_beginning(entry->physicalPage);
       }else if(page_replacement_algo == LRUCLOCK){
-        if(lru_clock[entry->physicalPage]==-1){
-                        DEBUG('B',"hello exception \n ");
-                    }
         lru_clock[entry->physicalPage] = 1;
-      }
-      
+      }      
       phy_to_pte[entry->physicalPage] = entry;
       phy_to_pid[entry->physicalPage] = currentThread->GetPID();
 

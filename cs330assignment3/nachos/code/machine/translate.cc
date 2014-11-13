@@ -269,17 +269,13 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
       DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
       return BusErrorException;
     }
-    if(page_replacement_algo == LRU){
+    if(page_replacement_algo == LRU && entry->is_shared == FALSE){
       lru->delete_element(entry->physicalPage);
       lru->add_at_beginning(entry->physicalPage);
-    }else if(page_replacement_algo == LRUCLOCK){
-      
+    }else if(page_replacement_algo == LRUCLOCK && entry->is_shared == FALSE){
        if(lru_clock[entry->physicalPage]!=-1){
-                        DEBUG('B',"hello translate %d\n ",entry->is_shared);
             lru_clock[entry->physicalPage] = 1;
         }
-      
-
     }
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
