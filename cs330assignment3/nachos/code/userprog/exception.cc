@@ -375,6 +375,7 @@ ExceptionHandler(ExceptionType which)
         phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
         phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
         lru_clock[newPageTable[i].physicalPage] = -1;
+        stats->numPageFaults++;
         DEBUG('L',"LRU clock = %d\t%d\n\n", i,newPageTable[i].physicalPage);
        }
        for(int k=0;k<NumPhysPages;k++){

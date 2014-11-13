@@ -173,6 +173,7 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
                 for (int j=0; j<PageSize; j++) {
                     machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
                 }
+                stats->numPageFaults++;
                 DEBUG('F', "Allocating Memory Completed!!\n\n");
             }else{
                 pageTable[i].physicalPage = -1;
