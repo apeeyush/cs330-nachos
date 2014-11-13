@@ -1,0 +1,107 @@
+16
+
+Page Replacement Algo: 1
+ Paging: faults 2373 Ticks: total 3921836
+ Paging: faults 744 Ticks: total 1231111
+ Paging: faults 1806 Ticks: total 1471645
+Page Replacement Algo: 2
+ Paging: faults 2381 Ticks: total 3931543
+ Paging: faults 732 Ticks: total 1217073
+ Paging: faults 1519 Ticks: total 1275158
+Page Replacement Algo: 3
+ Paging: faults 2021 Ticks: total 3541602
+ Paging: faults 632 Ticks: total 1109828
+ Paging: faults 1290 Ticks: total 1183037
+Page Replacement Algo: 4
+ Paging: faults 2021 Ticks: total 3541602
+ Paging: faults 632 Ticks: total 1109828
+ Paging: faults 1303 Ticks: total 1192449
+
+32
+
+Page Replacement Algo: 1
+ Paging: faults 1962 Ticks: total 3475033
+ Paging: faults 637 Ticks: total 1114141
+ Paging: faults 1067 Ticks: total 963370
+Page Replacement Algo: 2
+ Paging: faults 2055 Ticks: total 3580966
+ Paging: faults 657 Ticks: total 1136051
+ Paging: faults 923 Ticks: total 912560
+Page Replacement Algo: 3
+ Paging: faults 1896 Ticks: total 3411829
+ Paging: faults 613 Ticks: total 1088781
+ Paging: faults 793 Ticks: total 733174
+Page Replacement Algo: 4
+ Paging: faults 1898 Ticks: total 3413606
+ Paging: faults 614 Ticks: total 1088845
+ Paging: faults 826 Ticks: total 761484
+
+64
+
+Page Replacement Algo: 1
+ Paging: faults 1552 Ticks: total 3041378
+ Paging: faults 587 Ticks: total 1061213
+ Paging: faults 251 Ticks: total 496610
+Page Replacement Algo: 2
+ Paging: faults 1732 Ticks: total 3233953
+ Paging: faults 596 Ticks: total 1070584
+ Paging: faults 158 Ticks: total 470852
+Page Replacement Algo: 3
+ Paging: faults 1663 Ticks: total 3161181
+ Paging: faults 578 Ticks: total 1049819
+ Paging: faults 152 Ticks: total 458710
+Page Replacement Algo: 4
+ Paging: faults 1666 Ticks: total 3161193
+ Paging: faults 577 Ticks: total 1048030
+ Paging: faults 152 Ticks: total 446621
+
+128
+
+Page Replacement Algo: 1
+ Paging: faults 964 Ticks: total 2412367
+ Paging: faults 482 Ticks: total 946851
+ Paging: faults 118 Ticks: total 417599
+Page Replacement Algo: 2
+ Paging: faults 1247 Ticks: total 2716564
+ Paging: faults 515 Ticks: total 983427
+ Paging: faults 118 Ticks: total 417599
+Page Replacement Algo: 3
+ Paging: faults 1225 Ticks: total 2691553
+ Paging: faults 509 Ticks: total 976216
+ Paging: faults 118 Ticks: total 417599
+Page Replacement Algo: 4
+ Paging: faults 1225 Ticks: total 2691553
+ Paging: faults 509 Ticks: total 976216
+ Paging: faults 118 Ticks: total 417599
+
+ 256
+
+
+Page Replacement Algo: 1
+ Paging: faults 549 Ticks: total 1965679
+ Paging: faults 414 Ticks: total 873999
+Page Replacement Algo: 2
+ Paging: faults 381 Ticks: total 1785503
+ Paging: faults 381 Ticks: total 839247
+Page Replacement Algo: 3
+ Paging: faults 379 Ticks: total 1783546
+ Paging: faults 380 Ticks: total 838713
+Page Replacement Algo: 4
+ Paging: faults 379 Ticks: total 1783546
+ Paging: faults 380 Ticks: total 838713
+
+512
+
+
+Page Replacement Algo: 1
+ Paging: faults 376 Ticks: total 1780259
+ Paging: faults 377 Ticks: total 835389
+Page Replacement Algo: 2
+ Paging: faults 376 Ticks: total 1780259
+ Paging: faults 377 Ticks: total 835389
+Page Replacement Algo: 3
+ Paging: faults 376 Ticks: total 1780259
+ Paging: faults 377 Ticks: total 835389
+Page Replacement Algo: 4
+ Paging: faults 376 Ticks: total 1780259
+ Paging: faults 377 Ticks: total 835389
