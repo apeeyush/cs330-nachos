@@ -72,22 +72,6 @@ unsigned short
 ShortToMachine(unsigned short shortword) { return ShortToHost(shortword); }
 
 
-
-static void 
-SwapHeader (NoffHeader *noffH)
-{
-  noffH->noffMagic = WordToHost(noffH->noffMagic);
-  noffH->code.size = WordToHost(noffH->code.size);
-  noffH->code.virtualAddr = WordToHost(noffH->code.virtualAddr);
-  noffH->code.inFileAddr = WordToHost(noffH->code.inFileAddr);
-  noffH->initData.size = WordToHost(noffH->initData.size);
-  noffH->initData.virtualAddr = WordToHost(noffH->initData.virtualAddr);
-  noffH->initData.inFileAddr = WordToHost(noffH->initData.inFileAddr);
-  noffH->uninitData.size = WordToHost(noffH->uninitData.size);
-  noffH->uninitData.virtualAddr = WordToHost(noffH->uninitData.virtualAddr);
-  noffH->uninitData.inFileAddr = WordToHost(noffH->uninitData.inFileAddr);
-}
-
 //----------------------------------------------------------------------
 // Machine::ReadMem
 //      Read "size" (1, 2, or 4) bytes of virtual memory at "addr" into 

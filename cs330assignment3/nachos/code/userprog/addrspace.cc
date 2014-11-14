@@ -141,41 +141,6 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
     for (i = 0; i < numPages; i++) {
         pageTable[i].virtualPage = i;
         pageTable[i].is_shared = parentPageTable[i].is_shared;
-        if(parentPageTable[i].is_shared == FALSE){
-            if(parentPageTable[i].valid == TRUE){
-                if(page_replacement_algo == LRU){
-                    lru->delete_element(parentPageTable[i].physicalPage);
-                    lru->add_at_beginning(parentPageTable[i].physicalPage);
-                }  
-                int page_to_replace = FindNextPage(parentPageTable[i].physicalPage);
-                pageTable[i].physicalPage = page_to_replace ;
-                if(page_replacement_algo == FIFO){
-                    fifo->add_at_beginning(pageTable[i].physicalPage);
-                }else if(page_replacement_algo == LRU){
-                    lru->delete_element(pageTable[i].physicalPage);
-                    lru->add_at_beginning(pageTable[i].physicalPage);                    
-                }else if(page_replacement_algo == LRUCLOCK){
-                    lru_clock[pageTable[i].physicalPage] = 1;
-                    lru_clock[parentPageTable[i].physicalPage] = 1;
-                }
-                // SetUp Back pointers
-                phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
-                phy_to_pid[pageTable[i].physicalPage] = child_pid;
-                // Copy the contents
-                unsigned localStartAddrParent = parentPageTable[i].physicalPage*PageSize;
-                unsigned localStartAddrChild = pageTable[i].physicalPage*PageSize;
-                for (int j=0; j<PageSize; j++) {
-                    machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
-                }
-                stats->numPageFaults++;
-                DEBUG('F', "Allocating Memory Completed!!\n\n");
-            }else{
-                pageTable[i].physicalPage = -1;
-            }
-        }else{
-            lru_clock[parentPageTable[i].physicalPage] = -1;
-            pageTable[i].physicalPage = parentPageTable[i].physicalPage;
-        }
         pageTable[i].valid = parentPageTable[i].valid;
         pageTable[i].use = parentPageTable[i].use;
         pageTable[i].dirty = parentPageTable[i].dirty;
@@ -183,6 +148,45 @@ AddrSpace::AddrSpaceInitialize(AddrSpace *parentSpace, int child_pid)
         pageTable[i].is_changed = parentPageTable[i].is_changed;
         for(int k=0;k<PageSize;k++){
             threadArray[child_pid]->fallMem[i*PageSize+k]=currentThread->fallMem[i*PageSize+k];
+        }
+        if(parentPageTable[i].is_shared == FALSE){
+            if(parentPageTable[i].valid == TRUE){
+                int page_to_replace = FindNextPage(parentPageTable[i].physicalPage);
+                pageTable[i].physicalPage = page_to_replace;
+                // Copy the contents
+                unsigned localStartAddrParent = parentPageTable[i].physicalPage*PageSize;
+                unsigned localStartAddrChild = pageTable[i].physicalPage*PageSize;
+                for (int j=0; j<PageSize; j++) {
+                    machine->mainMemory[localStartAddrChild+j] = machine->mainMemory[localStartAddrParent+j];
+                }
+                // DS update for various page replacement algos
+                if(page_replacement_algo == FIFO){
+                    fifo->add_at_beginning(pageTable[i].physicalPage);
+                }else if(page_replacement_algo == LRU){
+                    // Parent
+                    lru->delete_element(parentPageTable[i].physicalPage);
+                    lru->add_at_beginning(parentPageTable[i].physicalPage);
+                    // Child
+                    lru->delete_element(pageTable[i].physicalPage);
+                    lru->add_at_beginning(pageTable[i].physicalPage);                    
+                }else if(page_replacement_algo == LRUCLOCK){
+                    // Parent
+                    lru_clock[pageTable[i].physicalPage] = 1;
+                    // Child
+                    lru_clock[parentPageTable[i].physicalPage] = 1;
+                }
+                // SetUp Back pointers
+                phy_to_pte[pageTable[i].physicalPage] = &pageTable[i];
+                phy_to_pid[pageTable[i].physicalPage] = child_pid;
+                stats->numPageFaults++;
+                currentThread->SortedInsertInWaitQueue (1000+stats->totalTicks);
+                DEBUG('F', "Allocating Memory Completed!!\n\n");
+            }else{
+                pageTable[i].physicalPage = -1;
+            }
+        }else{
+            lru_clock[parentPageTable[i].physicalPage] = -1;
+            pageTable[i].physicalPage = parentPageTable[i].physicalPage;
         }
     }
     DEBUG('P', "Exiting Fork!!\n\n");

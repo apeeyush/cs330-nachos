@@ -140,8 +140,7 @@ ExceptionHandler(ExceptionType which)
     else if ((which == SyscallException) && (type == syscall_Exec)) {
        // Copy the executable name into kernel space
        vaddr = machine->ReadRegister(4);
-       bool flag = FALSE;
-       machine->ReadMem(vaddr, 1, &memval);
+       bool flag = machine->ReadMem(vaddr, 1, &memval);
        while(flag != TRUE){
         flag = machine->ReadMem(vaddr, 1, &memval);
        }
@@ -150,8 +149,7 @@ ExceptionHandler(ExceptionType which)
           buffer[i] = (*(char*)&memval);
           i++;
           vaddr++;
-          machine->ReadMem(vaddr, 1, &memval);
-          bool flag = FALSE;
+          bool flag = machine->ReadMem(vaddr, 1, &memval);
           while(flag != TRUE){
             flag = machine->ReadMem(vaddr, 1, &memval);
           }
@@ -245,8 +243,7 @@ ExceptionHandler(ExceptionType which)
     }
     else if ((which == SyscallException) && (type == syscall_PrintString)) {
        vaddr = machine->ReadRegister(4);
-       bool flag = FALSE;
-       machine->ReadMem(vaddr, 1, &memval);
+       bool flag = machine->ReadMem(vaddr, 1, &memval);
        while(flag != TRUE){
         flag = machine->ReadMem(vaddr, 1, &memval);
        }
@@ -254,8 +251,7 @@ ExceptionHandler(ExceptionType which)
           writeDone->P() ;
           console->PutChar(*(char*)&memval);
           vaddr++;
-          bool flag = FALSE;
-          machine->ReadMem(vaddr, 1, &memval);
+          bool flag = machine->ReadMem(vaddr, 1, &memval);
           while(flag != TRUE){
             flag = machine->ReadMem(vaddr, 1, &memval);
           }
@@ -349,20 +345,8 @@ ExceptionHandler(ExceptionType which)
        int old_num_pages = curr_space->GetNumPages();
        new_size = num_pages*PageSize;
        TranslationEntry *newPageTable = new TranslationEntry[num_pages];
-       for(int i =0; i<curr_space->GetNumPages(); i++){
-        newPageTable[i].virtualPage = i;
-        newPageTable[i].physicalPage = oldPageTable[i].physicalPage;
-        newPageTable[i].valid = oldPageTable[i].valid;
-        newPageTable[i].use = oldPageTable[i].use;
-        newPageTable[i].dirty = oldPageTable[i].dirty;
-        newPageTable[i].readOnly = oldPageTable[i].readOnly;
-        newPageTable[i].is_shared = oldPageTable[i].is_shared;
-        newPageTable[i].is_changed = oldPageTable[i].is_changed;
-        phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
-        phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
-       }
+       // Copy new page table
        for(int i =old_num_pages; i<num_pages; i++){
-        DEBUG('L',"LRU clock...............\n");
         newPageTable[i].virtualPage = i;
         newPageTable[i].physicalPage = currentThread->space->FindNextPage(-1);
         bzero(&machine->mainMemory[newPageTable[i].physicalPage*PageSize], PageSize);
@@ -376,10 +360,19 @@ ExceptionHandler(ExceptionType which)
         phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
         lru_clock[newPageTable[i].physicalPage] = -1;
         stats->numPageFaults++;
-        DEBUG('L',"LRU clock = %d\t%d\n\n", i,newPageTable[i].physicalPage);
        }
-       for(int k=0;k<NumPhysPages;k++){
-            DEBUG('L',"hey%d ",lru_clock[k]);
+       // Copy old page table
+       for(int i =0; i<curr_space->GetNumPages(); i++){
+        newPageTable[i].virtualPage = i;
+        newPageTable[i].physicalPage = oldPageTable[i].physicalPage;
+        newPageTable[i].valid = oldPageTable[i].valid;
+        newPageTable[i].use = oldPageTable[i].use;
+        newPageTable[i].dirty = oldPageTable[i].dirty;
+        newPageTable[i].readOnly = oldPageTable[i].readOnly;
+        newPageTable[i].is_shared = oldPageTable[i].is_shared;
+        newPageTable[i].is_changed = oldPageTable[i].is_changed;
+        phy_to_pte[newPageTable[i].physicalPage] = &newPageTable[i];
+        phy_to_pid[newPageTable[i].physicalPage] = currentThread->GetPID();
        }
        curr_space->SetNumPages(num_pages);
        curr_space->SetPageTable(newPageTable);
@@ -387,7 +380,6 @@ ExceptionHandler(ExceptionType which)
        machine->pageTableSize = num_pages;
        machine->WriteRegister(2,old_num_pages*PageSize);
        delete oldPageTable;
-
        DEBUG('t',"Allocated Shared Memory with numPagesAllocated = %d\n\n", numPagesAllocated);
        // Advance program counters.
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -579,8 +571,7 @@ ExceptionHandler(ExceptionType which)
           SwapHeader(&noffH);
 
         int size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
-              + UserStackSize;  // we need to increase the size
-                          // to leave room for the stack
+              + UserStackSize;
         int new_numPages = divRoundUp(size, PageSize);
         size =  new_numPages * PageSize; 
 
